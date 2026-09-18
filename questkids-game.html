@@ -1,0 +1,2134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>QuestKids — Learn. Play. Level Up.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-deep:#16213E; --sky-mid:#28406B;
+    --gold:#F5A623; --gold-light:#FFD37A;
+    --coral:#FF6F59; --mint:#5FCB92; --mint-dark:#3AA873;
+    --cream:#FFF7EA; --ink:#1B2530;
+    --stone:#8B7A66;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito',sans-serif;
+    background:radial-gradient(circle at 50% 0%, var(--sky-mid), var(--sky-deep) 70%);
+    min-height:100vh; display:flex; justify-content:center; color:var(--ink);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .phone{
+    width:100%; max-width:430px; min-height:100vh;
+    background:var(--sky-deep); display:flex; flex-direction:column;
+    position:relative; overflow:hidden;
+    perspective:1200px;
+  }
+
+  .overlay{
+    position:absolute; inset:0; z-index:20; display:flex;
+    background: radial-gradient(circle at 25% 0%, #33508A 0%, transparent 55%), linear-gradient(160deg, #1B2A4A 0%, #16213E 50%, #0D1730 100%);
+    flex-direction:column; align-items:center; justify-content:center;
+    padding:28px 22px; text-align:center; overflow:hidden;
+    opacity:0; pointer-events:none; will-change:opacity,transform,filter;
+  }
+  .overlay.visible{
+    opacity:1; pointer-events:auto; z-index:25;
+    animation:overlayIn 0.45s cubic-bezier(.22,1,.36,1) forwards;
+  }
+  .overlay.leaving{
+    opacity:1; pointer-events:none; z-index:24;
+    animation:overlayOut 0.32s ease forwards;
+  }
+  @keyframes overlayIn{
+    0%{ opacity:0; transform:perspective(1400px) rotateY(38deg) translateX(50px) translateZ(-140px) scale(0.9); filter:blur(7px); }
+    100%{ opacity:1; transform:perspective(1400px) rotateY(0deg) translateX(0) translateZ(0) scale(1); filter:blur(0); }
+  }
+  @keyframes overlayOut{
+    0%{ opacity:1; transform:perspective(1400px) rotateY(0deg) translateX(0) translateZ(0) scale(1); filter:blur(0); }
+    100%{ opacity:0; transform:perspective(1400px) rotateY(-38deg) translateX(-50px) translateZ(-180px) scale(0.88); filter:blur(7px); }
+  }
+
+  /* Zoom-push transition, used specifically for Home <-> Age navigation */
+  .overlay.visible-zoom{ opacity:1; pointer-events:auto; z-index:25; animation:zoomPushIn 0.5s cubic-bezier(.22,.9,.32,1) forwards; }
+  .overlay.leaving-zoom{ opacity:1; pointer-events:none; z-index:24; animation:zoomPushOut 0.45s cubic-bezier(.4,0,.2,1) forwards; }
+  .overlay.visible-zoompop{ opacity:1; pointer-events:auto; z-index:25; animation:zoomPopIn 0.5s cubic-bezier(.22,.9,.32,1) forwards; }
+  .overlay.leaving-zoompop{ opacity:1; pointer-events:none; z-index:24; animation:zoomPopOut 0.38s ease forwards; }
+  @keyframes zoomPushOut{
+    0%{ opacity:1; transform:scale(1) translateY(0); }
+    60%{ opacity:1; transform:scale(1.3) translateY(55%); }
+    100%{ opacity:0; transform:scale(1.55) translateY(115%); }
+  }
+  @keyframes zoomPushIn{
+    0%{ opacity:0; transform:scale(0.42) translateY(0); }
+    55%{ opacity:1; transform:scale(1.06) translateY(0); }
+    100%{ opacity:1; transform:scale(1) translateY(0); }
+  }
+  @keyframes zoomPopOut{
+    0%{ opacity:1; transform:scale(1) translateY(0); }
+    100%{ opacity:0; transform:scale(0.42) translateY(0); }
+  }
+  @keyframes zoomPopIn{
+    0%{ opacity:0; transform:scale(1.35) translateY(75%); }
+    100%{ opacity:1; transform:scale(1) translateY(0); }
+  }
+  .overlay .badge{ font-size:44px; margin-bottom:8px; }
+  .overlay h1{ font-family:'Baloo 2',sans-serif; color:var(--cream); font-size:24px; margin:0 0 4px; z-index:2; }
+  .overlay p{ color:rgba(255,247,234,0.65); font-size:13px; margin:0 0 22px; font-weight:600; z-index:2; }
+  .overlay .content{ position:relative; z-index:2; width:100%; display:flex; flex-direction:column; align-items:center; }
+
+  .floaties{ position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:1; }
+  .floaties span{ position:absolute; font-size:26px; opacity:0.5; animation:floatDrift 4.5s ease-in-out infinite; }
+  @keyframes floatDrift{ 0%,100%{ transform:translateY(0) rotate(0deg); } 50%{ transform:translateY(-16px) rotate(10deg); } }
+
+  .cta-btn{
+    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:17px;
+    background:linear-gradient(160deg, var(--gold-light), var(--gold)); color:#5A3A00;
+    border:none; border-radius:16px; padding:15px 34px;
+    box-shadow:0 5px 0 #C97E10, inset 0 1px 0 rgba(255,255,255,0.4); cursor:pointer; margin-top:6px;
+    transition:transform 0.12s ease;
+  }
+  .cta-btn:active{ transform:translateY(3px); box-shadow:0 2px 0 #C97E10, inset 0 1px 0 rgba(255,255,255,0.4); }
+
+  .home-coin-badge{
+    display:flex; align-items:center; gap:6px; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:16px;
+    color:var(--gold-light); background:rgba(245,166,35,0.12); border:1px solid rgba(245,166,35,0.3);
+    border-radius:999px; padding:6px 16px; margin-bottom:10px; z-index:2;
+  }
+  .store-btn{
+    margin-top:26px; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px;
+    background:rgba(255,255,255,0.08); backdrop-filter:blur(12px) saturate(160%); -webkit-backdrop-filter:blur(12px) saturate(160%);
+    color:var(--cream); border:1px solid rgba(255,255,255,0.2);
+    border-radius:14px; padding:10px 22px; cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.12); transition:transform 0.12s ease;
+  }
+  .store-btn:active{ transform:scale(0.96); }
+
+  #storeOverlay{ overflow-y:auto; justify-content:flex-start; padding-top:50px; }
+  .store-balance{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    font-family:'Baloo 2',sans-serif; font-weight:800; font-size:19px; color:var(--gold-light);
+    background:rgba(245,166,35,0.12); border:1px solid rgba(245,166,35,0.3);
+    border-radius:999px; padding:7px 18px; margin-bottom:14px; z-index:2;
+  }
+  .store-tabs{ display:flex; gap:8px; margin-bottom:16px; z-index:2; }
+  .store-tab{
+    font-family:'Nunito',sans-serif; font-weight:800; font-size:12px;
+    background:rgba(255,255,255,0.06); color:rgba(255,247,234,0.7);
+    border:1px solid rgba(255,255,255,0.15); border-radius:999px;
+    padding:7px 14px; cursor:pointer;
+  }
+  .store-tab.active{ background:rgba(255,111,89,0.25); color:var(--gold-light); border-color:var(--coral); }
+  .store-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; z-index:2; padding-bottom:16px; }
+  .store-card{
+    background:rgba(255,255,255,0.07); backdrop-filter:blur(12px) saturate(150%); -webkit-backdrop-filter:blur(12px) saturate(150%);
+    border:1px solid rgba(255,255,255,0.16); border-radius:16px;
+    padding:12px 10px; display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .store-swatch{ width:100%; height:50px; border-radius:10px; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(255,255,255,0.25); background:#2C4770; }
+  .store-swatch svg{ display:block; width:100%; height:100%; }
+  .store-name{ font-family:'Baloo 2',sans-serif; font-weight:700; font-size:13px; color:var(--cream); text-align:center; }
+  .store-btn-sm{
+    font-family:'Nunito',sans-serif; font-weight:800; font-size:12px;
+    background:var(--mint-dark); color:#fff; border:none; border-radius:999px;
+    padding:6px 14px; cursor:pointer;
+  }
+  .store-btn-sm.disabled{ background:rgba(255,255,255,0.12); color:rgba(255,247,234,0.4); cursor:not-allowed; }
+  .store-status{
+    font-family:'Nunito',sans-serif; font-weight:800; font-size:11px; color:var(--mint);
+    background:rgba(95,203,146,0.15); border:1px solid var(--mint-dark);
+    border-radius:999px; padding:5px 12px;
+  }
+
+  .settings-list{ width:100%; display:flex; flex-direction:column; gap:14px; z-index:2; margin-top:12px; }
+  .settings-row{
+    display:flex; align-items:center; justify-content:space-between;
+    background:rgba(255,255,255,0.07); backdrop-filter:blur(10px) saturate(150%); -webkit-backdrop-filter:blur(10px) saturate(150%);
+    border:1px solid rgba(255,255,255,0.15); border-radius:14px; padding:12px 16px;
+  }
+  .settings-row span{ font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px; color:var(--cream); }
+  .toggle-switch{
+    width:46px; height:26px; border-radius:999px; background:rgba(255,255,255,0.18);
+    border:none; position:relative; cursor:pointer; transition:background 0.2s ease; flex-shrink:0; padding:0;
+  }
+  .toggle-switch.on{ background:var(--mint-dark); }
+  .toggle-switch .knob{
+    position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%;
+    background:#fff; transition:transform 0.2s ease; box-shadow:0 1px 3px rgba(0,0,0,0.3); display:block;
+  }
+  .toggle-switch.on .knob{ transform:translateX(20px); }
+  .feature-row{ display:flex; gap:14px; margin:18px 0 26px; z-index:2; flex-wrap:wrap; justify-content:center; }
+  .feature-pill{ background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.14); border-radius:12px; padding:8px 12px; font-size:11px; font-weight:700; color:var(--cream); }
+
+  .age-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; width:100%; z-index:2; }
+  .age-grid > *{ opacity:0; transform-origin:50% 100%; animation:btnMorphIn 0.5s cubic-bezier(.22,.9,.32,1) forwards; }
+  .age-grid > *:nth-child(1){ animation-delay:.04s; } .age-grid > *:nth-child(2){ animation-delay:.08s; }
+  .age-grid > *:nth-child(3){ animation-delay:.12s; } .age-grid > *:nth-child(4){ animation-delay:.16s; }
+  .age-grid > *:nth-child(5){ animation-delay:.20s; } .age-grid > *:nth-child(6){ animation-delay:.24s; }
+  .age-grid > *:nth-child(7){ animation-delay:.28s; } .age-grid > *:nth-child(8){ animation-delay:.32s; }
+  .age-grid > *:nth-child(9){ animation-delay:.36s; }
+  @keyframes btnMorphIn{
+    0%{ opacity:0; transform:perspective(700px) rotateX(-75deg) translateY(18px) scale(0.85); }
+    55%{ opacity:1; transform:perspective(700px) rotateX(12deg) translateY(-3px) scale(1.03); }
+    100%{ opacity:1; transform:perspective(700px) rotateX(0deg) translateY(0) scale(1); }
+  }
+  .age-btn{
+    font-family:'Baloo 2',sans-serif; font-weight:700; font-size:15px;
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(14px) saturate(160%);
+    -webkit-backdrop-filter:blur(14px) saturate(160%);
+    color:var(--cream);
+    border:1px solid rgba(255,255,255,0.22); border-radius:14px;
+    padding:14px 4px; cursor:pointer;
+    box-shadow:0 6px 18px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+    transition:transform 0.15s ease, background 0.15s ease;
+  }
+  .age-btn:active{ background:rgba(255,111,89,0.35); border-color:var(--coral); transform:scale(0.96); }
+
+  .subject-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; z-index:2; }
+  .subject-grid > *{ opacity:0; transform-origin:50% 100%; animation:btnMorphIn 0.5s cubic-bezier(.22,.9,.32,1) forwards; }
+  .subject-grid > *:nth-child(1){ animation-delay:.04s; } .subject-grid > *:nth-child(2){ animation-delay:.08s; }
+  .subject-grid > *:nth-child(3){ animation-delay:.12s; } .subject-grid > *:nth-child(4){ animation-delay:.16s; }
+  .subject-grid > *:nth-child(5){ animation-delay:.20s; } .subject-grid > *:nth-child(6){ animation-delay:.24s; }
+  .subject-btn{
+    font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px;
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(14px) saturate(160%);
+    -webkit-backdrop-filter:blur(14px) saturate(160%);
+    color:var(--cream);
+    border:1px solid rgba(255,255,255,0.22); border-radius:16px;
+    padding:16px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:6px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+    transition:transform 0.15s ease, background 0.15s ease;
+  }
+  .subject-btn .ico{ font-size:26px; }
+  .subject-btn:active{ background:rgba(95,203,146,0.35); border-color:var(--mint); transform:scale(0.96); }
+  .surprise-btn{
+    grid-column:1 / -1; font-family:'Nunito',sans-serif; font-weight:800; font-size:13px;
+    background:rgba(255,255,255,0.04);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border:1px dashed rgba(255,247,234,0.35); color:rgba(255,247,234,0.75);
+    border-radius:14px; padding:10px; cursor:pointer; margin-top:4px;
+    transition:transform 0.15s ease, background 0.15s ease;
+  }
+  .surprise-btn:active{ background:rgba(255,255,255,0.12); transform:scale(0.97); }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px 10px; }
+  .brand{ display:flex; align-items:center; gap:8px; }
+  .brand-badge{ width:34px;height:34px;border-radius:10px; background:linear-gradient(160deg, var(--gold-light), var(--gold)); display:flex;align-items:center;justify-content:center; font-size:18px; box-shadow:0 3px 0 rgba(0,0,0,0.2); }
+  .brand-name{ font-family:'Baloo 2',sans-serif; font-weight:800; font-size:19px; color:var(--cream); }
+  .stats{ display:flex; gap:8px; }
+  .stat-pill{ display:flex; align-items:center; gap:4px; background:rgba(255,255,255,0.08); backdrop-filter:blur(12px) saturate(160%); -webkit-backdrop-filter:blur(12px) saturate(160%); border:1px solid rgba(255,255,255,0.16); padding:5px 10px; border-radius:999px; font-weight:800; font-size:13px; color:var(--cream); box-shadow:inset 0 1px 0 rgba(255,255,255,0.12); transition:transform 0.2s ease; }
+  .stat-pill.bump{ animation:statBump 0.4s ease; }
+  @keyframes statBump{ 0%{transform:scale(1);} 40%{transform:scale(1.25);} 100%{transform:scale(1);} }
+  .stat-pill.penalty{ animation:statPenalty 0.4s ease; color:var(--coral); }
+  @keyframes statPenalty{ 0%{transform:scale(1);} 40%{transform:scale(0.85) translateX(-3px);} 100%{transform:scale(1);} }
+
+  .subbar{ display:flex; justify-content:space-between; align-items:center; padding:0 18px 8px; }
+  .age-tag{ font-size:11px; font-weight:800; color:var(--gold-light); background:rgba(245,166,35,0.12); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(245,166,35,0.3); padding:3px 9px; border-radius:999px; }
+  .change-age{
+    font-size:11px; font-weight:800; color:var(--cream);
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(10px) saturate(160%);
+    -webkit-backdrop-filter:blur(10px) saturate(160%);
+    border:1px solid rgba(255,255,255,0.2); border-radius:999px;
+    padding:6px 13px; cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.12);
+    transition:transform 0.15s ease, background 0.15s ease;
+  }
+  .change-age:active{ background:rgba(255,255,255,0.2); transform:scale(0.95); }
+
+  .world-strip{ display:flex; gap:8px; padding:2px 18px 14px; overflow-x:auto; }
+  .world-chip{ flex:0 0 auto; display:flex; align-items:center; gap:6px; padding:6px 12px 6px 6px; border-radius:999px; font-size:12px; font-weight:700; white-space:nowrap; border:1px solid transparent; backdrop-filter:blur(10px) saturate(150%); -webkit-backdrop-filter:blur(10px) saturate(150%); box-shadow:0 4px 12px rgba(0,0,0,0.18); transition:transform 0.15s ease; }
+  .world-chip .icon{ width:24px;height:24px;border-radius:50%; display:flex;align-items:center;justify-content:center; font-size:13px; }
+  .world-chip.active{ background:rgba(255,111,89,0.18); color:var(--gold-light); border-color:var(--coral); }
+  .world-chip.active .icon{ background:var(--coral); }
+  .world-chip.unlocked{ background:rgba(95,203,146,0.14); color:var(--mint); border-color:var(--mint-dark); cursor:pointer; }
+  .world-chip.unlocked .icon{ background:var(--mint-dark); }
+  .world-chip.unlocked:active{ transform:scale(0.96); }
+  .world-chip.locked{ background:rgba(255,255,255,0.05); color:rgba(255,247,234,0.45); }
+  .world-chip.locked .icon{ background:rgba(255,255,255,0.12); }
+  .just-unlocked{ animation:chipPop 0.5s ease; }
+  @keyframes chipPop{ 0%{transform:scale(1);} 30%{transform:scale(1.15);} 60%{transform:scale(0.95);} 100%{transform:scale(1);} }
+
+  .diff-tag{ display:block; text-align:center; font-size:11px; font-weight:800; color:var(--gold-light); margin:-4px 0 8px; }
+
+  .scene-wrap{ margin:0 16px; border-radius:22px; overflow:hidden; background:linear-gradient(180deg,#4A6FA5 0%, #6D93C4 55%, #86A9CE 100%); position:relative; box-shadow:0 10px 26px rgba(0,0,0,0.35); transition:box-shadow 0.25s ease; }
+  .scene-wrap svg{ display:block; width:100%; height:auto; }
+  .scene-wrap.wrong-pulse{ box-shadow:0 0 0 4px rgba(255,90,70,0.55), 0 10px 26px rgba(0,0,0,0.35); }
+  .scene-vignette{ position:absolute; inset:0; pointer-events:none; border-radius:22px; box-shadow:inset 0 18px 30px -18px rgba(10,15,35,0.5), inset 0 -14px 22px -16px rgba(10,15,35,0.35); }
+
+  .game-screen{
+    opacity:0; pointer-events:none; will-change:opacity,transform,filter;
+    background: radial-gradient(circle at 75% 0%, #33508A 0%, transparent 50%), linear-gradient(170deg, #1B2A4A 0%, #16213E 55%, #0D1730 100%);
+  }
+  .game-screen.visible{ opacity:1; pointer-events:auto; z-index:22; animation:overlayIn 0.45s cubic-bezier(.22,1,.36,1) forwards; }
+  .game-screen.leaving{ opacity:1; pointer-events:none; z-index:21; animation:overlayOut 0.32s ease forwards; }
+
+  .sun-group{ transform-box:fill-box; transform-origin:50% 50%; animation:sunPulse 3.6s ease-in-out infinite; }
+  @keyframes sunPulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.07); } }
+
+  .sparkle{ transform-box:fill-box; transform-origin:50% 50%; animation:sparkleTwinkle 2.4s ease-in-out infinite; }
+  .sparkle-a{ animation-delay:0.2s; }
+  .sparkle-b{ animation-delay:1.1s; }
+  @keyframes sparkleTwinkle{ 0%,100%{ opacity:0.15; transform:scale(0.6) rotate(0deg); } 50%{ opacity:1; transform:scale(1.15) rotate(25deg); } }
+
+  .bird{ opacity:0.85; animation:birdFly 9s linear infinite; }
+  .bird-1{ transform:translate(-20px,50px); animation-duration:10s; }
+  .bird-2{ transform:translate(-20px,72px); animation-duration:13s; animation-delay:3.5s; }
+  @keyframes birdFly{
+    0%{ transform:translate(-20px,50px) translateY(0); opacity:0; }
+    8%{ opacity:0.85; }
+    50%{ transform:translate(220px,32px) translateY(-6px); }
+    92%{ opacity:0.85; }
+    100%{ transform:translate(440px,48px) translateY(0); opacity:0; }
+  }
+  .bird-2{ animation-name:birdFly2; }
+  @keyframes birdFly2{
+    0%{ transform:translate(-20px,72px) translateY(0); opacity:0; }
+    8%{ opacity:0.75; }
+    50%{ transform:translate(210px,58px) translateY(-5px); }
+    92%{ opacity:0.75; }
+    100%{ transform:translate(440px,70px) translateY(0); opacity:0; }
+  }
+
+  .cloud{ transform-box:fill-box; }
+  .cloud-1{ transform:translate(50px,42px); animation:cloudDrift1 22s ease-in-out infinite; }
+  .cloud-2{ transform:translate(230px,55px); animation:cloudDrift2 17s ease-in-out infinite; }
+  @keyframes cloudDrift1{ 0%,100%{ transform:translate(50px,42px); } 50%{ transform:translate(75px,42px); } }
+  @keyframes cloudDrift2{ 0%,100%{ transform:translate(230px,55px); } 50%{ transform:translate(208px,55px); } }
+
+  .water-ripples path{ animation:waterFlow 2.4s linear infinite; }
+  .water-ripples path:nth-child(2){ animation-duration:3.1s; animation-direction:reverse; }
+  @keyframes waterFlow{ 0%{ stroke-dashoffset:0; } 100%{ stroke-dashoffset:-26; } }
+
+  .stone-shine{ mix-blend-mode:screen; }
+  .stone-shine.shine-sweep{ animation:tileShine 0.7s ease-out; }
+  @keyframes tileShine{ 0%{ opacity:0; transform:translateX(-14px); } 35%{ opacity:1; } 100%{ opacity:0; transform:translateX(14px); } }
+
+  #hero{ transition:transform 0.45s cubic-bezier(.34,1.4,.64,1); }
+  .hero-bob{ transform-box:fill-box; transform-origin:50% 100%; animation:heroBob 1.8s ease-in-out infinite; }
+  @keyframes heroBob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-2px); } }
+
+  .reaction-badge{ position:absolute; top:10px; right:14px; font-size:30px; opacity:0; transform:scale(0.4) rotate(-8deg); pointer-events:none; }
+  .reaction-badge.show-wrong{ animation:reactSad 0.9s ease forwards; }
+  .reaction-badge.show-correct{ animation:reactHappy 0.8s ease forwards; }
+  @keyframes reactSad{ 0%{opacity:0;transform:scale(0.3) rotate(-10deg);} 25%{opacity:1;transform:scale(1.25) rotate(6deg);} 45%{transform:scale(1) rotate(-4deg);} 75%{opacity:1;transform:scale(1) rotate(0deg);} 100%{opacity:0;transform:scale(0.85) translateY(6px);} }
+  @keyframes reactHappy{ 0%{opacity:0;transform:scale(0.3) rotate(8deg);} 30%{opacity:1;transform:scale(1.3) rotate(-6deg);} 60%{transform:scale(1) rotate(4deg);} 100%{opacity:0;transform:scale(0.9) translateY(-8px);} }
+
+  .chapter-row{ display:flex; align-items:center; justify-content:center; gap:8px; margin:16px 0 2px; }
+  .chapter-title{ font-family:'Baloo 2',sans-serif; color:var(--cream); font-weight:800; font-size:21px; text-align:center; }
+  .level-tag{ font-size:11px; font-weight:800; color:var(--sky-deep); background:var(--gold-light); padding:3px 9px; border-radius:999px; }
+  .chapter-sub{ text-align:center; color:rgba(255,247,234,0.7); font-size:13px; font-weight:600; margin-bottom:12px; }
+
+  .progress-row{ display:flex; align-items:center; gap:10px; margin:0 18px 14px; }
+  .progress-track{ flex:1; height:12px; background:rgba(255,255,255,0.12); border-radius:999px; overflow:hidden; border:1px solid rgba(255,255,255,0.15); }
+  .progress-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--mint-dark), var(--mint)); border-radius:999px; transition:width 0.5s cubic-bezier(.34,1.56,.64,1); }
+  .progress-label{ font-size:12px; font-weight:800; color:var(--gold-light); min-width:36px; text-align:right; }
+
+  .card{ margin:4px 16px 16px; background:var(--cream); border-radius:20px; padding:20px 18px 18px; box-shadow:0 10px 0 rgba(0,0,0,0.18); border:3px solid transparent; }
+  .card.wrong-border{ animation:borderFlash 0.6s ease; }
+  @keyframes borderFlash{ 0%{border-color:rgba(255,111,89,0);} 25%{border-color:rgba(255,111,89,0.9);} 60%{border-color:rgba(255,111,89,0.5);} 100%{border-color:rgba(255,111,89,0);} }
+  .card-eyebrow{ font-size:12px; font-weight:800; color:var(--stone); margin-bottom:6px; }
+  .visual-row{ display:flex; justify-content:center; gap:12px; margin-bottom:10px; }
+  .visual-row span{ font-size:46px; display:inline-block; animation:bounceEmoji 1s ease-in-out infinite; }
+  .visual-row span:nth-child(2){ animation-delay:0.15s; }
+  .visual-row span:nth-child(3){ animation-delay:0.3s; }
+  .visual-row span:nth-child(4){ animation-delay:0.45s; }
+  @keyframes bounceEmoji{ 0%,100%{ transform:translateY(0) scale(1); } 50%{ transform:translateY(-14px) scale(1.08); } }
+  .question-text{ font-family:'Baloo 2',sans-serif; font-size:19px; font-weight:700; line-height:1.35; color:var(--ink); margin-bottom:16px; text-align:center; }
+  .choices{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .choice-btn{ font-family:'Nunito',sans-serif; font-size:15px; font-weight:800; padding:14px 6px; border-radius:14px; border:none; background:#fff; color:var(--ink); box-shadow:0 4px 0 #DCD2BE; cursor:pointer; transition:transform 0.08s ease; }
+  .choice-btn:active{ transform:translateY(3px); box-shadow:0 1px 0 #DCD2BE; }
+  .choice-btn.correct{ background:var(--mint); color:#fff; box-shadow:0 4px 0 var(--mint-dark); }
+  .choice-btn.wrong{ background:var(--coral); color:#fff; box-shadow:0 4px 0 #C94F3D; }
+  .choice-btn.hint-highlight{ background:var(--gold); color:#5A3A00; box-shadow:0 4px 0 #C97E10; animation:hintPulse 0.9s ease infinite; }
+  @keyframes hintPulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.05); } }
+  .feedback{ margin-top:12px; font-weight:800; font-size:14px; min-height:18px; color:var(--mint-dark); text-align:center; }
+  .feedback.shake{ color:var(--coral); }
+  .feedback.hint{ color:#B4790A; }
+  .hint-btn{ display:block; margin:14px auto 0; font-size:12px; font-weight:800; color:var(--stone); background:none; border:none; text-decoration:underline; cursor:pointer; }
+
+  .celebrate{ margin:8px 16px 20px; background:linear-gradient(160deg, var(--gold-light), var(--gold)); border-radius:20px; padding:22px 18px; text-align:center; box-shadow:0 10px 0 rgba(0,0,0,0.18); display:none; }
+  .celebrate h2{ font-family:'Baloo 2',sans-serif; margin:0 0 6px; color:#5A3A00; font-size:20px; }
+  .celebrate p{ margin:0 0 14px; color:#5A3A00; font-weight:700; font-size:14px; }
+  .celebrate-buttons{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .celebrate button{ font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px; border:none; padding:12px 18px; border-radius:14px; }
+  .btn-primary{ background:var(--sky-deep); color:var(--cream); box-shadow:0 4px 0 #0A1226; }
+  .btn-secondary{ background:#fff; color:var(--ink); box-shadow:0 4px 0 #DCD2BE; }
+
+  .footnote{ text-align:center; color:rgba(255,247,234,0.35); font-size:11px; padding:6px 20px 22px; }
+
+  @keyframes pop{ 0%{transform:scale(0.3);opacity:0;} 60%{transform:scale(1.15);opacity:1;} 100%{transform:scale(1);} }
+  .pop-in{ animation:pop 0.4s ease; }
+  @keyframes shakeAnim{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-6px) rotate(-2deg);} 40%{transform:translateX(6px) rotate(2deg);} 60%{transform:translateX(-4px);} 80%{transform:translateX(4px);} }
+  .shake-el{ animation:shakeAnim 0.45s ease; }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- HOME -->
+  <div class="overlay visible" id="homeOverlay">
+    <div class="floaties">
+      <span style="top:8%;left:10%;animation-delay:0s;">🌟</span>
+      <span style="top:14%;left:78%;animation-delay:0.6s;">🪐</span>
+      <span style="top:72%;left:14%;animation-delay:1.2s;">🎈</span>
+      <span style="top:66%;left:80%;animation-delay:0.3s;">🍃</span>
+      <span style="top:42%;left:4%;animation-delay:0.9s;">📚</span>
+      <span style="top:46%;left:88%;animation-delay:1.5s;">🔬</span>
+      <span style="top:85%;left:45%;animation-delay:0.4s;">✨</span>
+    </div>
+    <div class="content">
+      <div class="badge">🗺️</div>
+      <h1>QuestKids</h1>
+      <p>Learn. Play. Level Up.</p>
+      <div class="home-coin-badge">🪙 <span id="homeCoinCount">0</span></div>
+      <div class="feature-row">
+        <div class="feature-pill">🎯 Learn by playing</div>
+        <div class="feature-pill">🏆 Earn XP & coins</div>
+        <div class="feature-pill">🧠 Gets smarter with you</div>
+      </div>
+      <button class="cta-btn" onclick="buildAgeGrid(); goToScreen('age')">Start Adventure ▶</button>
+      <button class="store-btn" onclick="switchStoreTab('skins'); goToScreen('store')">🛒 Store</button>
+      <button class="store-btn" onclick="updateSettingsUI(); goToScreen('settings')">⚙️ Settings</button>
+    </div>
+  </div>
+
+  <!-- STORE -->
+  <div class="overlay" id="storeOverlay">
+    <div class="content">
+      <button class="change-age" style="align-self:flex-start; margin-bottom:10px;" onclick="goBackScreen()">← Back</button>
+      <div class="badge">🛒</div>
+      <h1>Explorer Store</h1>
+      <p>Spend coins you've collected on new looks</p>
+      <div class="store-balance">🪙 <span id="storeCoinCount">0</span></div>
+      <div class="store-tabs">
+        <button class="store-tab active" data-cat="skins" onclick="switchStoreTab('skins')">Skins</button>
+        <button class="store-tab" data-cat="backgrounds" onclick="switchStoreTab('backgrounds')">Sky</button>
+        <button class="store-tab" data-cat="bridges" onclick="switchStoreTab('bridges')">Mountains</button>
+      </div>
+      <div class="store-grid" id="storeGrid"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="overlay" id="settingsOverlay">
+    <div class="content">
+      <button class="change-age" style="align-self:flex-start; margin-bottom:10px;" onclick="goBackScreen()">← Back</button>
+      <div class="badge">⚙️</div>
+      <h1>Settings</h1>
+      <p>Control sound and vibration</p>
+      <div class="settings-list">
+        <div class="settings-row">
+          <span>🎵 Background Music</span>
+          <button class="toggle-switch on" id="toggleMusic" onclick="toggleSetting('music')"><span class="knob"></span></button>
+        </div>
+        <div class="settings-row">
+          <span>🔊 Sound Effects</span>
+          <button class="toggle-switch on" id="toggleSfx" onclick="toggleSetting('sfx')"><span class="knob"></span></button>
+        </div>
+        <div class="settings-row">
+          <span>📳 Vibration</span>
+          <button class="toggle-switch on" id="toggleVibration" onclick="toggleSetting('vibration')"><span class="knob"></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGE SELECT -->
+  <div class="overlay" id="ageOverlay">
+    <div class="floaties">
+      <span style="top:10%;left:12%;animation-delay:0.2s;">🧮</span>
+      <span style="top:18%;left:75%;animation-delay:0.8s;">🔤</span>
+      <span style="top:75%;left:10%;animation-delay:0.5s;">🪐</span>
+      <span style="top:68%;left:78%;animation-delay:1.1s;">🌿</span>
+      <span style="top:88%;left:45%;animation-delay:0.3s;">🧪</span>
+    </div>
+    <div class="content">
+      <button class="change-age" style="align-self:flex-start; margin-bottom:14px;" onclick="goBackScreen()">← Back</button>
+      <div class="badge">🎂</div>
+      <h1>How old is the explorer?</h1>
+      <p>This sets how tricky the quests will be</p>
+      <div class="age-grid" id="ageGrid"></div>
+    </div>
+  </div>
+
+  <!-- SUBJECT SELECT -->
+  <div class="overlay" id="subjectOverlay">
+    <div class="floaties">
+      <span style="top:9%;left:8%;animation-delay:0.1s;">⛰️</span>
+      <span style="top:12%;left:80%;animation-delay:0.7s;">🧪</span>
+      <span style="top:78%;left:12%;animation-delay:0.4s;">🌲</span>
+      <span style="top:80%;left:78%;animation-delay:1s;">🚀</span>
+      <span style="top:50%;left:4%;animation-delay:0.6s;">🌿</span>
+    </div>
+    <div class="content">
+      <button class="change-age" style="align-self:flex-start; margin-bottom:14px;" onclick="goBackScreen()">← Back</button>
+      <div class="badge">🧭</div>
+      <h1>What do you want to learn first?</h1>
+      <p>Pick a world to start your quest</p>
+      <div class="subject-grid" id="subjectGrid"></div>
+    </div>
+  </div>
+
+  <div class="game-screen" id="gameScreen">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-badge">🗺️</div>
+      <div class="brand-name">QuestKids</div>
+    </div>
+    <div class="stats">
+      <div class="stat-pill" id="coinPill">🪙 <span id="coinCount">0</span></div>
+      <div class="stat-pill" id="xpPill">⭐ <span id="xpCount">0</span> XP</div>
+    </div>
+  </div>
+
+  <div class="subbar">
+    <span class="age-tag" id="ageTag">Age: —</span>
+    <div style="display:flex; gap:14px;">
+      <button class="change-age" onclick="goBackScreen()">← Back</button>
+      <button class="change-age" onclick="buildAgeGrid(); goToScreen('age')">Change age</button>
+    </div>
+  </div>
+
+  <div class="world-strip" id="worldStrip"></div>
+
+  <div class="scene-wrap" id="sceneWrap">
+    <div class="reaction-badge" id="reactionBadge">🙁</div>
+    <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="mtFarGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop id="mtFarStop1" offset="0%" stop-color="#7692C4"/>
+          <stop id="mtFarStop2" offset="100%" stop-color="#5B7FAE"/>
+        </linearGradient>
+        <linearGradient id="mtMidGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop id="mtMidStop1" offset="0%" stop-color="#6482B8"/>
+          <stop id="mtMidStop2" offset="100%" stop-color="#4A6FA5"/>
+        </linearGradient>
+        <linearGradient id="mtNearGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop id="mtNearStop1" offset="0%" stop-color="#4E6DA0"/>
+          <stop id="mtNearStop2" offset="100%" stop-color="#3E5C92"/>
+        </linearGradient>
+        <linearGradient id="snowGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFFFFF"/>
+          <stop offset="100%" stop-color="#EDE6D6"/>
+        </linearGradient>
+        <radialGradient id="sunGlowGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#FFE9A8" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#FFE9A8" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="sunCoreGrad" cx="38%" cy="35%" r="65%">
+          <stop offset="0%" stop-color="#FFF6D8"/>
+          <stop offset="55%" stop-color="#FFE28A"/>
+          <stop offset="100%" stop-color="#F7C948"/>
+        </radialGradient>
+        <linearGradient id="groundGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#5FA873"/>
+          <stop offset="100%" stop-color="#458060"/>
+        </linearGradient>
+        <linearGradient id="shineSweep" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
+          <stop offset="50%" stop-color="#ffffff" stop-opacity="0.85"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+
+      <!-- sparkles -->
+      <g class="sparkle sparkle-a">
+        <path d="M250 28 l2.4 6 6 2.4 -6 2.4 -2.4 6 -2.4 -6 -6 -2.4 6 -2.4 z" fill="#FFF3C4"/>
+      </g>
+      <g class="sparkle sparkle-b">
+        <path d="M298 22 l1.8 4.6 4.6 1.8 -4.6 1.8 -1.8 4.6 -1.8 -4.6 -4.6 -1.8 4.6 -1.8 z" fill="#FFF3C4"/>
+      </g>
+
+      <!-- sun -->
+      <g class="sun-group">
+        <circle cx="335" cy="40" r="34" fill="url(#sunGlowGrad)"/>
+        <circle cx="335" cy="40" r="20" fill="url(#sunCoreGrad)"/>
+      </g>
+
+      <!-- birds -->
+      <path class="bird bird-1" d="M0 0 q4 -5 8 0 q-4 -2 -8 0 q4 2 8 0 q-4 5 -8 0" fill="none" stroke="#2B3A5C" stroke-width="1.6" stroke-linecap="round"/>
+      <path class="bird bird-2" d="M0 0 q3.5 -4.2 7 0 q-3.5 -1.7 -7 0 q3.5 1.7 7 0 q-3.5 4.2 -7 0" fill="none" stroke="#2B3A5C" stroke-width="1.4" stroke-linecap="round"/>
+
+      <!-- clouds -->
+      <g class="cloud cloud-1">
+        <ellipse cx="8" cy="10" rx="16" ry="9" fill="#3E5C92" opacity="0.12"/>
+        <g fill="#ffffff" opacity="0.92">
+          <ellipse cx="0" cy="5" rx="26" ry="12"/><ellipse cx="22" cy="0" rx="20" ry="10"/><ellipse cx="-20" cy="0" rx="16" ry="9"/>
+        </g>
+      </g>
+      <g class="cloud cloud-2">
+        <g fill="#ffffff" opacity="0.8">
+          <ellipse cx="0" cy="4" rx="17" ry="8"/><ellipse cx="13" cy="0" rx="12" ry="6.5"/>
+        </g>
+      </g>
+
+      <!-- mountains -->
+      <polygon points="0,150 90,60 180,150" fill="url(#mtFarGrad)"/>
+      <polygon points="0,150 90,60 90,150" fill="#fff" opacity="0.1"/>
+      <polygon points="90,150 90,60 180,150" fill="#000" opacity="0.15"/>
+      <polygon points="70,72 90,60 110,72 96,78 84,78 z" fill="url(#snowGrad)" opacity="0.9"/>
+      <polygon points="90,60 110,72 96,78" fill="#000" opacity="0.12"/>
+
+      <polygon points="140,150 230,50 320,150" fill="url(#mtMidGrad)"/>
+      <polygon points="140,150 230,50 230,150" fill="#fff" opacity="0.09"/>
+      <polygon points="230,150 230,50 320,150" fill="#000" opacity="0.17"/>
+      <polygon points="207,64 230,50 253,64 236,71 224,71 z" fill="url(#snowGrad)"/>
+      <polygon points="230,50 253,64 236,71" fill="#000" opacity="0.13"/>
+
+      <polygon points="220,150 300,55 400,150" fill="url(#mtNearGrad)"/>
+      <polygon points="220,150 300,55 300,150" fill="#fff" opacity="0.07"/>
+      <polygon points="300,150 300,55 400,150" fill="#000" opacity="0.2"/>
+      <polygon points="277,69 300,55 323,69 306,76 294,76 z" fill="url(#snowGrad)"/>
+      <polygon points="300,55 323,69 306,76" fill="#000" opacity="0.16"/>
+      <polygon points="255,150 300,90 345,150" fill="#F2E9D8"/>
+      <polygon points="255,150 300,90 300,150" fill="#fff" opacity="0.5"/>
+      <polygon points="300,150 300,90 345,150" fill="#B8A888" opacity="0.35"/>
+
+      <!-- ground -->
+      <rect x="0" y="150" width="400" height="70" fill="url(#groundGrad)"/>
+      <rect x="0" y="150" width="400" height="8" fill="#6FBA85"/>
+      <g fill="#3F7856" opacity="0.6">
+        <ellipse cx="30" cy="207" rx="16" ry="8"/><ellipse cx="18" cy="200" rx="10" ry="9"/>
+        <ellipse cx="374" cy="210" rx="18" ry="8"/><ellipse cx="386" cy="202" rx="10" ry="9"/>
+      </g>
+
+      <!-- river -->
+      <rect id="riverRect" x="110" y="150" width="181" height="70" fill="#3E7FB0"/>
+      <rect x="110" y="150" width="181" height="70" fill="#000000" opacity="0.06"/>
+      <g class="water-ripples" stroke="#EAF4FF" stroke-width="1.6" fill="none" opacity="0.5" stroke-linecap="round">
+        <path d="M116 165 q8 4 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0" stroke-dasharray="6 7"/>
+        <path d="M116 200 q8 -4 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0" stroke-dasharray="6 7"/>
+      </g>
+
+      <!-- bridge (tiles generated dynamically in JS to match QUESTIONS_PER_LEVEL) -->
+      <g id="bridge"></g>
+      <rect id="postLeft" x="104" y="178" width="6" height="24" fill="#7A5C3E"/>
+      <rect x="104" y="178" width="2" height="24" fill="#95795A"/>
+      <rect id="postRight" x="291" y="178" width="6" height="24" fill="#7A5C3E"/>
+      <rect x="291" y="178" width="2" height="24" fill="#95795A"/>
+
+      <!-- hero -->
+      <g id="hero" transform="translate(101,168)">
+        <ellipse cx="11" cy="32" rx="13" ry="3.2" fill="#000" opacity="0.2"/>
+        <g class="hero-bob">
+          <rect x="-3" y="10" width="7" height="11" rx="2.5" fill="#8B5E34"/>
+          <rect x="-3" y="10" width="7" height="4" rx="2" fill="#A9784C"/>
+          <circle cx="0.5" cy="13" r="1.1" fill="#6B4423"/>
+
+          <rect x="4" y="21" width="5.5" height="10" rx="1.5" fill="#3E5C92"/>
+          <rect x="13" y="21" width="5.5" height="10" rx="1.5" fill="#3E5C92"/>
+          <rect x="4" y="21" width="2" height="10" rx="1" fill="#5C7BC0" opacity="0.55"/>
+          <ellipse cx="6.5" cy="31.5" rx="3.5" ry="1.8" fill="#5A3E28"/>
+          <ellipse cx="15.5" cy="31.5" rx="3.5" ry="1.8" fill="#5A3E28"/>
+
+          <path d="M-1 12 q4 6 1.5 13" fill="none" stroke="#E8A26B" stroke-width="3.4" stroke-linecap="round"/>
+          <circle cx="0" cy="25.5" r="2" fill="#FFD7B0"/>
+
+          <path id="heroTunic" d="M2 9 q9 -7 18 0 l0 14 q-9 5.5 -18 0 z" fill="var(--coral)"/>
+          <path d="M2 9 q9 -7 18 0 l0 4 q-9 -5 -18 0 z" fill="#fff" opacity="0.18"/>
+          <path d="M11 9 q9 0 9 3 l0 11 q-4.5 3 -9 3.5 z" fill="#000" opacity="0.14"/>
+          <rect x="2" y="18" width="18" height="2" fill="#000" opacity="0.15"/>
+
+          <rect x="8" y="11" width="4" height="3" fill="#EFC49E"/>
+
+          <circle cx="11" cy="5.5" r="8.5" fill="#FFD7B0"/>
+          <path d="M11 5.5 m-8.5 0 a8.5 8.5 0 0 1 8.5 -8.5 l0 8.5 z" fill="#000" opacity="0.06"/>
+          <path d="M2 3 q9 -9 18 0 q-2 -2.6 -9 -2.6 q-7 0 -9 2.6 z" fill="#7A4A2B"/>
+          <path d="M2.3 3.4 q8.7 -6.6 17.4 0" fill="none" stroke="#5E3A20" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M6.5 3.6 q1.6 -1 3.2 0" fill="none" stroke="#5E3A20" stroke-width="1" stroke-linecap="round"/>
+          <path d="M12.3 3.6 q1.6 -1 3.2 0" fill="none" stroke="#5E3A20" stroke-width="1" stroke-linecap="round"/>
+          <circle cx="8.2" cy="5.8" r="1.1" fill="#3B2A22"/>
+          <circle cx="13.8" cy="5.8" r="1.1" fill="#3B2A22"/>
+          <circle cx="8.5" cy="5.5" r="0.35" fill="#fff"/>
+          <circle cx="14.1" cy="5.5" r="0.35" fill="#fff"/>
+          <path d="M11 6.5 q0.6 1 0 1.6" fill="none" stroke="#E8A26B" stroke-width="0.8" stroke-linecap="round"/>
+          <path d="M8.5 9 q2.5 1.8 5 0" fill="none" stroke="#B5673F" stroke-width="1" stroke-linecap="round"/>
+          <circle cx="6.8" cy="7.8" r="1.3" fill="#FFB199" opacity="0.5"/>
+          <circle cx="15.2" cy="7.8" r="1.3" fill="#FFB199" opacity="0.5"/>
+        </g>
+      </g>
+    </svg>
+    <div class="scene-vignette"></div>
+  </div>
+
+  <div class="chapter-row">
+    <div class="chapter-title" id="chapterTitle">Repair the Bridge</div>
+    <div class="level-tag" id="levelTag">Level 1/3</div>
+  </div>
+  <div class="chapter-sub" id="chapterSub">Answer questions to place stones and reach the peak</div>
+  <span class="diff-tag" id="diffTag">Difficulty: ⭐</span>
+
+  <div class="progress-row">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label"><span id="progressCount">0</span>/10</div>
+  </div>
+
+  <div class="card" id="quizCard">
+    <div class="card-eyebrow" id="cardEyebrow">Math Mountain · Question 1</div>
+    <div class="visual-row" id="visualRow" style="display:none;"></div>
+    <div class="question-text" id="qText"></div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="hint-btn" id="hintBtn" onclick="revealAnswer()">🤔 Stuck? Show me the answer</button>
+  </div>
+
+  <div class="celebrate" id="celebrate">
+    <h2 id="celebrateTitle">🏔️ Level Complete!</h2>
+    <p id="celebrateText">You earned XP and coins.</p>
+    <div class="celebrate-buttons">
+      <button class="btn-secondary" onclick="replayWorld()">Play Again</button>
+      <button class="btn-primary" id="nextBtn" onclick="advanceStub()">Continue →</button>
+    </div>
+  </div>
+
+  <div class="footnote">QuestKids prototype · gets a little harder every correct answer</div>
+  </div>
+</div>
+
+<script>
+/* ---------- CONTENT ---------- */
+const AGE_GROUPS = [
+  {id:'a1',label:'2–5',tier:1,adaptive:false},{id:'a2',label:'5–6',tier:2,adaptive:false},{id:'a3',label:'7–8',tier:2,adaptive:true},
+  {id:'a4',label:'8–9',tier:3,adaptive:true},{id:'a5',label:'9–10',tier:3,adaptive:true},{id:'a6',label:'10–11',tier:4,adaptive:true},
+  {id:'a7',label:'11–12',tier:4,adaptive:true},{id:'a8',label:'12–14',tier:5,adaptive:true},{id:'a9',label:'14–15',tier:5,adaptive:true}
+];
+
+const POOLS = {
+  1:{
+    math:[
+      {text:"How many apples do you see?",visual:"🍎🍎🍎",answer:3,choices:[3,2,4,5]},
+      {text:"Which shape is round?",answer:'Circle',choices:['Circle','Square','Triangle','Star']},
+      {text:"How many stars do you see?",visual:"⭐⭐",answer:2,choices:[2,1,3,4]},
+      {text:"What comes after 3?",answer:4,choices:[4,5,3,2]},
+      {text:"How many fingers on one hand?",answer:5,choices:[5,4,6,3]},
+      {text:"Which shape has 3 sides?",answer:'Triangle',choices:['Triangle','Circle','Square','Heart']},
+      {text:"How many balloons do you see?",visual:"🎈🎈🎈🎈",answer:4,choices:[4,3,5,2]},
+      {text:"What comes before 5?",answer:4,choices:[4,3,6,5]},
+      {text:"5 + 1 = ?",answer:6,choices:[6,5,7,4]},
+      {text:"Which number is bigger, 2 or 5?",answer:5,choices:[5,2,3,4]},
+      {text:"3 + 2 = ?",answer:5,choices:[5,4,6,3]},
+      {text:"Which is more, 4 or 1?",answer:4,choices:[4,1,2,3]},
+      {text:"How many wheels on a bike?",answer:2,choices:[2,4,1,3]}
+    ],
+    science:[
+      {text:"What color is the sun?",answer:'Yellow',choices:['Yellow','Blue','Green','Purple']},
+      {text:"Which animal says 'moo'?",answer:'Cow',choices:['Cow','Cat','Dog','Duck']},
+      {text:"What do plants need to grow?",answer:'Water',choices:['Water','Candy','Rocks','Glue']},
+      {text:"What is a baby dog called?",answer:'Puppy',choices:['Puppy','Kitten','Cub','Chick']},
+      {text:"What do we use to see?",answer:'Eyes',choices:['Eyes','Ears','Nose','Hands']},
+      {text:"Which season is cold with snow?",answer:'Winter',choices:['Winter','Summer','Spring','Fall']},
+      {text:"What do bees make?",answer:'Honey',choices:['Honey','Milk','Bread','Juice']},
+      {text:"Which animal lives in water?",answer:'Fish',choices:['Fish','Dog','Cat','Bird']},
+      {text:"Which animal has a long neck?",answer:'Giraffe',choices:['Giraffe','Cat','Dog','Fish']},
+      {text:"What do we breathe?",answer:'Air',choices:['Air','Water','Rocks','Sand']},
+      {text:"Which animal can fly?",answer:'Bird',choices:['Bird','Fish','Dog','Cat']},
+      {text:"What do we drink?",answer:'Water',choices:['Water','Rocks','Sand','Glue']},
+      {text:"Which is a fruit?",answer:'Apple',choices:['Apple','Chair','Shoe','Book']}
+    ],
+    word:[
+      {text:"Which letter comes first: B or A?",answer:'A',choices:['A','B','C','D']},
+      {text:"What rhymes with 'cat'?",answer:'Hat',choices:['Hat','Dog','Sun','Cup']},
+      {text:"Which word means the opposite of 'big'?",answer:'Small',choices:['Small','Tall','Loud','Fast']},
+      {text:"What is the first letter of 'Dog'?",answer:'D',choices:['D','B','G','O']},
+      {text:"Which one is an animal word?",answer:'Cat',choices:['Cat','Chair','Sun','Book']},
+      {text:"What rhymes with 'sun'?",answer:'Fun',choices:['Fun','Star','Tree','Cup']},
+      {text:"Which word means 'happy'?",answer:'Glad',choices:['Glad','Sad','Mad','Cold']},
+      {text:"What is the last letter of 'Cup'?",answer:'P',choices:['P','C','U','B']},
+      {text:"Which word means the opposite of 'hot'?",answer:'Cold',choices:['Cold','Warm','Wet','Dry']},
+      {text:"What is the first letter of 'Sun'?",answer:'S',choices:['S','T','N','U']},
+      {text:"Which word means 'to jump'?",answer:'Hop',choices:['Hop','Sleep','Sit','Eat']},
+      {text:"What is the opposite of 'wet'?",answer:'Dry',choices:['Dry','Cold','Soft','Loud']},
+      {text:"Which word starts with 'M'?",answer:'Moon',choices:['Moon','Sun','Star','Sky']}
+    ],
+    space:[
+      {text:"Which is bigger, the Sun or the Moon?",answer:'The Sun',choices:['The Sun','The Moon','They are the same','Neither']},
+      {text:"When do we see the stars?",answer:'At night',choices:['At night','In the morning','At noon','Never']},
+      {text:"What shape is the Earth?",answer:'Round',choices:['Round','Flat','Square','Triangle']},
+      {text:"What lights up our sky at night?",answer:'The Moon',choices:['The Moon','The Sun','A cloud','A tree']},
+      {text:"What color is the sky during the day?",answer:'Blue',choices:['Blue','Green','Purple','Black']},
+      {text:"Which is hot, the Sun or an ice cube?",answer:'The Sun',choices:['The Sun','An ice cube','Both the same','Neither']},
+      {text:"What do astronauts wear in space?",answer:'Spacesuit',choices:['Spacesuit','Swimsuit','Raincoat','Pajamas']},
+      {text:"What travels in space to explore planets?",answer:'Rocket',choices:['Rocket','Car','Boat','Bicycle']},
+      {text:"What do we call a person who flies to the Moon?",answer:'Astronaut',choices:['Astronaut','Teacher','Doctor','Farmer']},
+      {text:"Is space hot or cold?",answer:'Cold',choices:['Cold','Hot','Warm','Wet']},
+      {text:"What do we see in the sky during the day?",answer:'The Sun',choices:['The Sun','Stars','The Moon','Planets']},
+      {text:"Which is farther, the Moon or a cloud?",answer:'The Moon',choices:['The Moon','A cloud','Same distance','Cannot tell']},
+      {text:"What shape are most planets?",answer:'Round',choices:['Round','Square','Flat','Triangular']}
+    ],
+    green:[
+      {text:"Which bin do banana peels go in?",answer:'Compost',choices:['Compost','Trash','Recycling','Nowhere']},
+      {text:"Which animal lives in a pond?",answer:'Frog',choices:['Frog','Lion','Camel','Elephant']},
+      {text:"What do trees give us to breathe?",answer:'Oxygen',choices:['Oxygen','Smoke','Water','Sand']},
+      {text:"What should we do with trash on the ground?",answer:'Pick it up',choices:['Pick it up','Leave it','Kick it','Hide it']},
+      {text:"Which of these grows on a tree?",answer:'Apple',choices:['Apple','Car','Chair','Shoe']},
+      {text:"What do plants need to grow?",answer:'Sunlight',choices:['Sunlight','Rocks','Glue','Plastic']},
+      {text:"What is a baby plant called?",answer:'Seedling',choices:['Seedling','Puppy','Kitten','Cub']},
+      {text:"What color are most leaves?",answer:'Green',choices:['Green','Purple','Black','Pink']},
+      {text:"Which of these is good for the earth?",answer:'Recycling',choices:['Recycling','Littering','Wasting water','Cutting trees']},
+      {text:"Where do birds build their homes?",answer:'Nests',choices:['Nests','Caves','Rivers','Roads']},
+      {text:"Which of these can we reuse?",answer:'A glass jar',choices:['A glass jar','A banana peel','An eggshell','A leaf']},
+      {text:"What do plants drink?",answer:'Water',choices:['Water','Juice','Milk','Soda']},
+      {text:"Which animal helps make honey?",answer:'Bee',choices:['Bee','Ant','Fly','Spider']}
+    ],
+    art:[
+      {text:"What color is a banana?",answer:'Yellow',choices:['Yellow','Blue','Black','Purple']},
+      {text:"Which color do you get mixing blue and yellow?",answer:'Green',choices:['Green','Orange','Pink','Brown']},
+      {text:"What do we use to paint a picture?",answer:'Paintbrush',choices:['Paintbrush','Fork','Spoon','Shoe']},
+      {text:"Which color is the grass?",answer:'Green',choices:['Green','Red','Blue','Black']},
+      {text:"What shape is a ball?",answer:'Circle',choices:['Circle','Square','Triangle','Star']},
+      {text:"Which color do you get mixing red and yellow?",answer:'Orange',choices:['Orange','Purple','Green','Black']},
+      {text:"What do we use to draw lines?",answer:'Crayon',choices:['Crayon','Fork','Cup','Sock']},
+      {text:"Which color is a strawberry?",answer:'Red',choices:['Red','Blue','Green','Yellow']},
+      {text:"What do we call a picture we make ourselves?",answer:'Drawing',choices:['Drawing','Sleeping','Running','Eating']},
+      {text:"Which color do you get mixing black and white?",answer:'Gray',choices:['Gray','Pink','Green','Orange']},
+      {text:"Which color is the sky?",answer:'Blue',choices:['Blue','Red','Brown','Black']},
+      {text:"What do we use scissors for in art?",answer:'Cutting paper',choices:['Cutting paper','Painting','Drawing','Singing']},
+      {text:"Which color do you get mixing blue and red?",answer:'Purple',choices:['Purple','Green','Orange','Yellow']}
+    ],
+    music:[
+      {text:"Which instrument do you blow into?",answer:'Flute',choices:['Flute','Drum','Piano','Guitar']},
+      {text:"What sound does a drum make?",answer:'Boom',choices:['Boom','Meow','Quack','Moo']},
+      {text:"Which animal sound is loud, a mouse or a lion?",answer:'A lion',choices:['A lion','A mouse','Neither','Both the same']},
+      {text:"What do we use our voice to do?",answer:'Sing',choices:['Sing','Swim','Fly','Dig']},
+      {text:"Which instrument has black and white keys?",answer:'Piano',choices:['Piano','Drum','Flute','Guitar']},
+      {text:"What do we call music that is very quiet?",answer:'Soft',choices:['Soft','Loud','Fast','Cold']},
+      {text:"Which instrument do you hit with sticks?",answer:'Drum',choices:['Drum','Flute','Violin','Piano']},
+      {text:"What do we do with our hands to a beat?",answer:'Clap',choices:['Clap','Sleep','Read','Eat']},
+      {text:"Which instrument has strings you pluck?",answer:'Guitar',choices:['Guitar','Drum','Flute','Trumpet']},
+      {text:"What do we call a song without words?",answer:'Instrumental',choices:['Instrumental','Silent','Loud','Broken']},
+      {text:"Which instrument do you shake to make sound?",answer:'Maracas',choices:['Maracas','Piano','Flute','Violin']},
+      {text:"What do we call a song for babies to sleep?",answer:'Lullaby',choices:['Lullaby','Anthem','March','Opera']},
+      {text:"Which is louder, a whisper or a shout?",answer:'A shout',choices:['A shout','A whisper','Same','Neither']}
+    ],
+    animal:[
+      {text:"Which animal says 'woof'?",answer:'Dog',choices:['Dog','Cat','Cow','Duck']},
+      {text:"Which animal has a trunk?",answer:'Elephant',choices:['Elephant','Lion','Zebra','Bear']},
+      {text:"Which animal lives in the ocean?",answer:'Fish',choices:['Fish','Dog','Cat','Horse']},
+      {text:"Which animal has stripes?",answer:'Zebra',choices:['Zebra','Elephant','Pig','Sheep']},
+      {text:"What do cows give us to drink?",answer:'Milk',choices:['Milk','Juice','Water','Soda']},
+      {text:"Which animal hops?",answer:'Rabbit',choices:['Rabbit','Fish','Snake','Cow']},
+      {text:"Which animal is the King of the jungle?",answer:'Lion',choices:['Lion','Mouse','Frog','Duck']},
+      {text:"Which animal says 'moo'?",answer:'Cow',choices:['Cow','Dog','Cat','Pig']},
+      {text:"Which animal has a long neck?",answer:'Giraffe',choices:['Giraffe','Pig','Dog','Cat']},
+      {text:"Which animal lives in a web?",answer:'Spider',choices:['Spider','Dog','Fish','Bird']}
+    ],
+    code:[
+      {text:"What comes next: red, blue, red, blue, red, ?",answer:'blue',choices:['blue','red','green','yellow']},
+      {text:"Which is bigger, a big circle or a small circle?",answer:'Big circle',choices:['Big circle','Small circle','Same size','Neither']},
+      {text:"What shape comes next: star, star, triangle, star, star, triangle, star, star, ?",answer:'triangle',choices:['triangle','star','circle','square']},
+      {text:"If you walk forward then forward again, where are you?",answer:'Two steps ahead',choices:['Two steps ahead','One step back','In the same place','Sideways']},
+      {text:"Which of these is a pattern: 1,2,1,2,1 or 1,5,3,9,2?",answer:'1,2,1,2,1',choices:['1,2,1,2,1','1,5,3,9,2','Neither','Both']},
+      {text:"What comes first when you get dressed: socks or shoes?",answer:'Socks',choices:['Socks','Shoes','Neither','Both together']},
+      {text:"Which button would you press to stop a toy car?",answer:'Stop',choices:['Stop','Go','Faster','Turn']},
+      {text:"What comes next: green, blue, green, blue, green, ?",answer:'blue',choices:['blue','green','red','black']},
+      {text:"If a robot walks forward 3 times, how many steps did it take?",answer:3,choices:[3,2,4,1]},
+      {text:"Which comes first in a story: the beginning or the end?",answer:'The beginning',choices:['The beginning','The end','The middle','None']}
+    ]
+  },
+  2:{
+    math:[
+      {text:"7 + 5 = ?",answer:12,choices:[12,11,13,10]},
+      {text:"9 − 4 = ?",answer:5,choices:[5,4,6,3]},
+      {text:"How many sides does a square have?",answer:4,choices:[4,3,5,6]},
+      {text:"10 + 8 = ?",answer:18,choices:[18,17,19,16]},
+      {text:"15 − 7 = ?",answer:8,choices:[8,7,9,6]},
+      {text:"Double 6 is?",answer:12,choices:[12,10,14,11]},
+      {text:"What is half of 10?",answer:5,choices:[5,4,6,10]},
+      {text:"6 + 6 = ?",answer:12,choices:[12,11,13,10]},
+      {text:"14 − 5 = ?",answer:9,choices:[9,8,10,7]},
+      {text:"What is triple 3?",answer:9,choices:[9,6,12,3]},
+      {text:"20 − 9 = ?",answer:11,choices:[11,10,12,9]},
+      {text:"What is 4 × 5?",answer:20,choices:[20,16,24,15]},
+      {text:"Half of 8 is?",answer:4,choices:[4,3,5,8]}
+    ],
+    science:[
+      {text:"Which part of the body pumps blood?",answer:'Heart',choices:['Heart','Lungs','Brain','Stomach']},
+      {text:"What gas do we breathe to live?",answer:'Oxygen',choices:['Oxygen','Carbon dioxide','Helium','Nitrogen']},
+      {text:"Which of these is a mammal?",answer:'Dolphin',choices:['Dolphin','Shark','Frog','Lizard']},
+      {text:"What do caterpillars turn into?",answer:'Butterflies',choices:['Butterflies','Birds','Bees','Spiders']},
+      {text:"Which object floats on water?",answer:'Wood',choices:['Wood','Rock','Coin','Nail']},
+      {text:"What is frozen water called?",answer:'Ice',choices:['Ice','Steam','Rain','Cloud']},
+      {text:"Which sense organ is used to smell?",answer:'Nose',choices:['Nose','Ears','Eyes','Tongue']},
+      {text:"Plants make food using sunlight and?",answer:'Water',choices:['Water','Sand','Rocks','Plastic']},
+      {text:"What do we call baby frogs?",answer:'Tadpoles',choices:['Tadpoles','Puppies','Kittens','Cubs']},
+      {text:"Which of these is a source of heat?",answer:'Fire',choices:['Fire','Ice','Rock','Cloud']},
+      {text:"What do we call baby cats?",answer:'Kittens',choices:['Kittens','Puppies','Cubs','Chicks']},
+      {text:"Which season comes after winter?",answer:'Spring',choices:['Spring','Summer','Fall','Winter']},
+      {text:"What helps plants make food?",answer:'Sunlight',choices:['Sunlight','Rocks','Sand','Ice']}
+    ],
+    word:[
+      {text:"Which word is a color?",answer:'Blue',choices:['Blue','Run','Jump','Table']},
+      {text:"What is the opposite of 'up'?",answer:'Down',choices:['Down','Left','Right','Over']},
+      {text:"Which word is spelled correctly?",answer:'Because',choices:['Because','Becuase','Becaus','Beacause']},
+      {text:"What do you call more than one 'dog'?",answer:'Dogs',choices:['Dogs','Doges','Dogies','Dogss']},
+      {text:"Which word means the same as 'quick'?",answer:'Fast',choices:['Fast','Slow','Loud','Quiet']},
+      {text:"Which of these is an action word?",answer:'Run',choices:['Run','Happy','Blue','Chair']},
+      {text:"What is the opposite of 'day'?",answer:'Night',choices:['Night','Sun','Bright','Morning']},
+      {text:"Which word completes: 'The sky is ___.'",answer:'Blue',choices:['Blue','Run','Loudly','Quick']},
+      {text:"Which word is a number word?",answer:'Three',choices:['Three','Chair','Jump','Blue']},
+      {text:"What is the opposite of 'in'?",answer:'Out',choices:['Out','Over','Under','Near']},
+      {text:"Which word means the same as 'happy'?",answer:'Joyful',choices:['Joyful','Sad','Angry','Tired']},
+      {text:"What is the opposite of 'full'?",answer:'Empty',choices:['Empty','Big','Heavy','Fast']},
+      {text:"Which word is a feeling?",answer:'Excited',choices:['Excited','Table','Green','Run']}
+    ],
+    space:[
+      {text:"How many planets are in our solar system?",answer:8,choices:[8,7,9,10]},
+      {text:"Which planet do we live on?",answer:'Earth',choices:['Earth','Mars','Venus','Jupiter']},
+      {text:"What is the closest star to Earth?",answer:'The Sun',choices:['The Sun','Polaris','Sirius','The Moon']},
+      {text:"What travels around the Earth?",answer:'The Moon',choices:['The Moon','A car','A plane','A bird']},
+      {text:"Which planet is known as the Red Planet?",answer:'Mars',choices:['Mars','Venus','Jupiter','Saturn']},
+      {text:"What do we call a person who travels to space?",answer:'Astronaut',choices:['Astronaut','Pilot','Diver','Sailor']},
+      {text:"Is the Moon bigger or smaller than Earth?",answer:'Smaller',choices:['Smaller','Bigger','Same size','Cannot tell']},
+      {text:"What do planets travel around?",answer:'The Sun',choices:['The Sun','The Moon','Earth','A star']},
+      {text:"What is the name of our galaxy?",answer:'The Milky Way',choices:['The Milky Way','Andromeda','The Sun System','Orbit']},
+      {text:"What do we call the path a planet takes around the sun?",answer:'Orbit',choices:['Orbit','Rotation','Gravity','Galaxy']},
+      {text:"Which planet is known for being windy and stormy?",answer:'Jupiter',choices:['Jupiter','Mercury','Earth','Venus']},
+      {text:"What do we call a night with no Moon visible?",answer:'New Moon',choices:['New Moon','Full Moon','Half Moon','Blue Moon']},
+      {text:"What travels through space carrying astronauts?",answer:'Spacecraft',choices:['Spacecraft','Submarine','Train','Airplane']}
+    ],
+    green:[
+      {text:"Which of these can be recycled?",answer:'Paper',choices:['Paper','Banana peel','Food scraps','Dirt']},
+      {text:"What is it called when we use less water and energy?",answer:'Conserving',choices:['Conserving','Wasting','Ignoring','Burning']},
+      {text:"Where do fish live?",answer:'Water',choices:['Water','Trees','Sand','Air']},
+      {text:"What do bees help plants do?",answer:'Pollinate',choices:['Pollinate','Sleep','Hide','Freeze']},
+      {text:"Which of these is a renewable resource?",answer:'Sunlight',choices:['Sunlight','Coal','Oil','Gas']},
+      {text:"What is a group of trees called?",answer:'Forest',choices:['Forest','Desert','Ocean','Valley']},
+      {text:"What should you do with a plastic bottle when done?",answer:'Recycle it',choices:['Recycle it','Throw it in a river','Bury it','Burn it']},
+      {text:"Which animal helps spread seeds?",answer:'Bird',choices:['Bird','Rock','Cloud','Car']},
+      {text:"What do worms do that helps soil?",answer:'They aerate it',choices:['They aerate it','They pollute it','They freeze it','They burn it']},
+      {text:"Which of these comes from trees?",answer:'Paper',choices:['Paper','Plastic','Glass','Metal']},
+      {text:"What should we do to save electricity?",answer:'Turn off lights when not needed',choices:['Turn off lights when not needed','Leave lights on all day','Use more devices','Ignore switches']},
+      {text:"Which of these is bad for rivers?",answer:'Littering',choices:['Littering','Planting trees','Recycling','Composting']},
+      {text:"What do trees do with carbon dioxide?",answer:'Absorb it',choices:['Absorb it','Release more of it','Ignore it','Store water instead']}
+    ],
+    art:[
+      {text:"Which colors are called primary colors?",answer:'Red, blue, yellow',choices:['Red, blue, yellow','Green, orange, purple','Black, white, gray','Pink, brown, teal']},
+      {text:"What do we call a person who paints?",answer:'Painter',choices:['Painter','Doctor','Chef','Farmer']},
+      {text:"Which shape has 4 equal sides?",answer:'Square',choices:['Square','Triangle','Circle','Oval']},
+      {text:"What tool do sculptors use most to shape clay?",answer:'Their hands',choices:['Their hands','A spoon','A pillow','A balloon']},
+      {text:"Mixing all colors together usually makes?",answer:'A dark color',choices:['A dark color','White','Pink','Nothing']},
+      {text:"What is a rainbow made of?",answer:'Colors of light',choices:['Colors of light','Paint','Crayons','Chalk']},
+      {text:"Which color is usually used for 'stop' signs?",answer:'Red',choices:['Red','Green','Blue','Yellow']},
+      {text:"What do we call a picture of a person's face?",answer:'Portrait',choices:['Portrait','Landscape','Map','Diagram']},
+      {text:"Which shape has no corners?",answer:'Circle',choices:['Circle','Square','Triangle','Rectangle']},
+      {text:"What do we call art made from paper cutouts?",answer:'Collage',choices:['Collage','Sculpture','Portrait','Mosaic']},
+      {text:"What do we call art you can walk around and see from all sides?",answer:'Sculpture',choices:['Sculpture','Painting','Drawing','Photograph']},
+      {text:"Which tool do you use to erase pencil marks?",answer:'Eraser',choices:['Eraser','Ruler','Scissors','Glue']},
+      {text:"What is a pattern in art?",answer:'A repeated design',choices:['A repeated design','A single color','A blank page','A torn edge']}
+    ],
+    music:[
+      {text:"What do we call the speed of a song?",answer:'Tempo',choices:['Tempo','Volume','Pitch','Rhythm']},
+      {text:"Which family of instruments does the violin belong to?",answer:'Strings',choices:['Strings','Brass','Woodwind','Percussion']},
+      {text:"What do we call a group of singers performing together?",answer:'Choir',choices:['Choir','Band','Orchestra','Duet']},
+      {text:"Which instrument is played with a bow?",answer:'Violin',choices:['Violin','Drum','Piano','Flute']},
+      {text:"What do we call it when music gets louder?",answer:'Crescendo',choices:['Crescendo','Diminuendo','Tempo','Rest']},
+      {text:"What do we call the repeating pattern of beats in music?",answer:'Rhythm',choices:['Rhythm','Melody','Harmony','Pitch']},
+      {text:"Which instrument has 88 keys?",answer:'Piano',choices:['Piano','Guitar','Drum','Flute']},
+      {text:"A group of musicians playing together with many instruments is called?",answer:'Orchestra',choices:['Orchestra','Choir','Duet','Solo']},
+      {text:"Which instrument would you find in the brass family?",answer:'Trumpet',choices:['Trumpet','Violin','Flute','Drum']},
+      {text:"What do we call a musical symbol that tells you to be silent?",answer:'Rest',choices:['Rest','Note','Beat','Clef']},
+      {text:"What do we call singing without any music playing?",answer:'A cappella',choices:['A cappella','Duet','Chorus','Symphony']},
+      {text:"Which instrument do you blow across the top of?",answer:'Flute',choices:['Flute','Piano','Drum','Guitar']},
+      {text:"What is a musical note that lasts a long time called?",answer:'A whole note',choices:['A whole note','A quick note','A silent note','A broken note']}
+    ],
+    animal:[
+      {text:"Which animal is known for its black and white stripes?",answer:'Zebra',choices:['Zebra','Lion','Tiger','Leopard']},
+      {text:"What do we call a baby kangaroo?",answer:'Joey',choices:['Joey','Cub','Calf','Pup']},
+      {text:"Which animal can change its color?",answer:'Chameleon',choices:['Chameleon','Lion','Elephant','Horse']},
+      {text:"Which bird cannot fly?",answer:'Penguin',choices:['Penguin','Eagle','Sparrow','Parrot']},
+      {text:"Which animal is the fastest land animal?",answer:'Cheetah',choices:['Cheetah','Elephant','Turtle','Sloth']},
+      {text:"Which sea animal has 8 arms?",answer:'Octopus',choices:['Octopus','Fish','Shark','Whale']},
+      {text:"Which animal sleeps upside down?",answer:'Bat',choices:['Bat','Dog','Bear','Owl']},
+      {text:"What do bees collect from flowers?",answer:'Nectar',choices:['Nectar','Water','Leaves','Sand']},
+      {text:"Which is the largest land animal?",answer:'Elephant',choices:['Elephant','Lion','Horse','Bear']},
+      {text:"Which animal builds dams?",answer:'Beaver',choices:['Beaver','Fox','Deer','Squirrel']}
+    ],
+    code:[
+      {text:"What do we call step-by-step instructions to complete a task?",answer:'Algorithm',choices:['Algorithm','Password','Pixel','Cursor']},
+      {text:"If a robot turns left twice, which direction does it face?",answer:'The opposite direction',choices:['The opposite direction','The same direction','Right','Backward only']},
+      {text:"What comes next: 2,4,6,8, ?",answer:10,choices:[10,9,12,7]},
+      {text:"What do we call a mistake in code that stops it working?",answer:'A bug',choices:['A bug','A feature','A loop','A variable']},
+      {text:"Which comes first: input or output?",answer:'Input',choices:['Input','Output','Neither','Both together']},
+      {text:"What is a loop used for in coding?",answer:'Repeating an action',choices:['Repeating an action','Stopping a program','Deleting code','Naming a variable']},
+      {text:"What shape pattern repeats: triangle, circle, triangle, circle?",answer:'Triangle, circle',choices:['Triangle, circle','Circle, square','Square, star','Star, triangle']},
+      {text:"Sorting 5,1,3 from smallest to largest, what comes first?",answer:1,choices:[1,3,5,0]},
+      {text:"What is a sequence?",answer:'A specific order of steps',choices:['A specific order of steps','A random collection','A single step','A color pattern']},
+      {text:"What do we call a container that stores a value in code?",answer:'A variable',choices:['A variable','A loop','A bug','A function']}
+    ]
+  },
+  3:{
+    math:[
+      {text:"6 × 4 = ?",answer:24,choices:[24,20,28,22]},
+      {text:"18 ÷ 3 = ?",answer:6,choices:[6,5,7,9]},
+      {text:"What is 1/2 of 20?",answer:10,choices:[10,5,15,20]},
+      {text:"9 × 3 = ?",answer:27,choices:[27,24,30,21]},
+      {text:"27 ÷ 9 = ?",answer:3,choices:[3,4,9,6]},
+      {text:"What is 7 × 7?",answer:49,choices:[49,42,56,45]},
+      {text:"Which fraction is bigger?",answer:'1/2',choices:['1/2','1/4','1/8','1/10']},
+      {text:"12 × 5 = ?",answer:60,choices:[60,50,55,65]},
+      {text:"8 × 6 = ?",answer:48,choices:[48,42,54,40]},
+      {text:"What is 3/4 of 8?",answer:6,choices:[6,4,8,2]},
+      {text:"45 ÷ 5 = ?",answer:9,choices:[9,8,10,7]},
+      {text:"What is 6 × 9?",answer:54,choices:[54,48,63,45]},
+      {text:"Which is bigger, 3/4 or 1/2?",answer:'3/4',choices:['3/4','1/2','Equal','Cannot tell']}
+    ],
+    science:[
+      {text:"Which of these is attracted to a magnet?",answer:'Iron nail',choices:['Iron nail','Plastic cup','Wood block','Paper']},
+      {text:"Water turns to gas when it?",answer:'Boils',choices:['Boils','Freezes','Melts','Sinks']},
+      {text:"Which planet is closest to the sun?",answer:'Mercury',choices:['Mercury','Earth','Mars','Venus']},
+      {text:"Plants make food through a process called?",answer:'Photosynthesis',choices:['Photosynthesis','Respiration','Digestion','Evaporation']},
+      {text:"Which of these is a source of light?",answer:'The Sun',choices:['The Sun','The Moon','A rock','A book']},
+      {text:"How many legs does an insect have?",answer:6,choices:[6,4,8,10]},
+      {text:"Animals that only eat plants are called?",answer:'Herbivores',choices:['Herbivores','Carnivores','Omnivores','Predators']},
+      {text:"Solid, liquid, and gas are all types of?",answer:'Matter',choices:['Matter','Energy','Light','Sound']},
+      {text:"Which simple machine is a seesaw an example of?",answer:'Lever',choices:['Lever','Pulley','Wheel','Screw']},
+      {text:"What do we call animals with a backbone?",answer:'Vertebrates',choices:['Vertebrates','Invertebrates','Mammals','Reptiles']},
+      {text:"What do we call animals active at night?",answer:'Nocturnal',choices:['Nocturnal','Diurnal','Aquatic','Migratory']},
+      {text:"Which organ pumps blood?",answer:'Heart',choices:['Heart','Lungs','Liver','Stomach']},
+      {text:"What is the study of living things called?",answer:'Biology',choices:['Biology','Geology','Chemistry','Physics']}
+    ],
+    word:[
+      {text:"Which word is a synonym for 'happy'?",answer:'Joyful',choices:['Joyful','Angry','Tired','Bored']},
+      {text:"What is the plural of 'child'?",answer:'Children',choices:['Children','Childs','Childes','Childrens']},
+      {text:"Which word is a noun (person, place, or thing)?",answer:'Teacher',choices:['Teacher','Quickly','Run','Blue']},
+      {text:"What is the opposite of 'ancient'?",answer:'Modern',choices:['Modern','Old','Historic','Antique']},
+      {text:"Which sentence uses correct punctuation?",answer:'I like apples.',choices:['I like apples.','i like apples','I like apples','i Like Apples.']},
+      {text:"Which word means 'to look at closely'?",answer:'Examine',choices:['Examine','Ignore','Sleep','Shout']},
+      {text:"What is the past tense of 'run'?",answer:'Ran',choices:['Ran','Runned','Running','Runs']},
+      {text:"Which word is an adjective (describes a noun)?",answer:'Beautiful',choices:['Beautiful','Quickly','Jump','Table']},
+      {text:"Which word is a synonym for 'small'?",answer:'Tiny',choices:['Tiny','Huge','Tall','Wide']},
+      {text:"What is the plural of 'leaf'?",answer:'Leaves',choices:['Leaves','Leafs','Leafes','Leave']},
+      {text:"Which word is a synonym for 'brave'?",answer:'Courageous',choices:['Courageous','Scared','Weak','Shy']},
+      {text:"What punctuation ends a question?",answer:'Question mark',choices:['Question mark','Period','Comma','Exclamation mark']},
+      {text:"Which word means 'to combine'?",answer:'Merge',choices:['Merge','Separate','Divide','Remove']}
+    ],
+    space:[
+      {text:"Which planet has rings around it?",answer:'Saturn',choices:['Saturn','Mercury','Earth','Mars']},
+      {text:"What is the order of the first three planets from the Sun?",answer:'Mercury, Venus, Earth',choices:['Mercury, Venus, Earth','Venus, Mercury, Earth','Earth, Venus, Mercury','Mars, Venus, Earth']},
+      {text:"What causes day and night on Earth?",answer:"Earth's rotation",choices:["Earth's rotation","The Moon's orbit","The Sun moving","Clouds"]},
+      {text:"What are the shapes of the Moon we see called?",answer:'Phases',choices:['Phases','Shadows','Orbits','Eclipses']},
+      {text:"Which planet is the largest in our solar system?",answer:'Jupiter',choices:['Jupiter','Saturn','Earth','Neptune']},
+      {text:"What is a group of stars forming a picture called?",answer:'Constellation',choices:['Constellation','Galaxy','Nebula','Comet']},
+      {text:"What is the name of the galaxy we live in?",answer:'The Milky Way',choices:['The Milky Way','Andromeda','The Sombrero','Triangulum']},
+      {text:"What causes the seasons on Earth?",answer:"Earth's tilt",choices:["Earth's tilt","The Moon's phases","The Sun's size","Clouds"]},
+      {text:"Which planet has the most moons in our solar system?",answer:'Saturn',choices:['Saturn','Earth','Mars','Mercury']},
+      {text:"What is a space station used for?",answer:'Living and working in space',choices:['Living and working in space','Growing crops on Earth','Storing water','Weather forecasting']},
+      {text:"Which planet is famous for its rings besides Saturn?",answer:'Uranus',choices:['Uranus','Earth','Mars','Mercury']},
+      {text:"What do we call the imaginary line Earth spins around?",answer:'Axis',choices:['Axis','Orbit','Equator','Meridian']},
+      {text:"How long is a day on Earth?",answer:'24 hours',choices:['24 hours','12 hours','48 hours','365 hours']}
+    ],
+    green:[
+      {text:"What is the chain of living things eating each other called?",answer:'Food chain',choices:['Food chain','Water cycle','Rock cycle','Life span']},
+      {text:"What do we call the place an animal naturally lives?",answer:'Habitat',choices:['Habitat','Hotel','Cage','Garden']},
+      {text:"Which of these helps reduce pollution?",answer:'Recycling',choices:['Recycling','Littering','Burning trash','Wasting water']},
+      {text:"What do we call animals that eat both plants and meat?",answer:'Omnivores',choices:['Omnivores','Herbivores','Carnivores','Decomposers']},
+      {text:"What breaks down dead plants and animals into soil?",answer:'Decomposers',choices:['Decomposers','Predators','Producers','Herbivores']},
+      {text:"Which resource can run out if overused?",answer:'Non-renewable resources',choices:['Non-renewable resources','Sunlight','Wind','Rain']},
+      {text:"What is it called when forests are cut down?",answer:'Deforestation',choices:['Deforestation','Reforestation','Pollution','Conservation']},
+      {text:"Which of these is an example of reusing?",answer:'Using a jar as a cup',choices:['Using a jar as a cup','Throwing away a jar','Burning a jar','Burying a jar']},
+      {text:"What is composting used for?",answer:'Turning food scraps into soil',choices:['Turning food scraps into soil','Making plastic','Cleaning water','Generating electricity']},
+      {text:"Which animal is a natural pollinator besides bees?",answer:'Butterflies',choices:['Butterflies','Sharks','Elephants','Penguins']},
+      {text:"What is a watershed?",answer:'An area of land that drains into a body of water',choices:['An area of land that drains into a body of water','A type of cloud','A farming tool','A kind of soil']},
+      {text:"Which practice helps farmland stay healthy?",answer:'Crop rotation',choices:['Crop rotation','Overplanting','Constant plowing','Chemical overuse']},
+      {text:"What do decomposers help recycle?",answer:'Nutrients',choices:['Nutrients','Plastic','Metal','Glass']}
+    ],
+    art:[
+      {text:"What are the secondary colors?",answer:'Green, orange, purple',choices:['Green, orange, purple','Red, blue, yellow','Black, white, gray','Pink, brown, teal']},
+      {text:"What is a famous art museum in Paris called?",answer:'The Louvre',choices:['The Louvre','The Met','MoMA','The Tate']},
+      {text:"What do we call the lightness or darkness of a color?",answer:'Value',choices:['Value','Hue','Texture','Shape']},
+      {text:"How many sides does a hexagon have?",answer:6,choices:[6,5,7,8]},
+      {text:"What is a picture made from small tiles called?",answer:'Mosaic',choices:['Mosaic','Portrait','Sketch','Collage']},
+      {text:"What tool do potters use to shape clay while it spins?",answer:'Pottery wheel',choices:['Pottery wheel','Paintbrush','Easel','Chisel']},
+      {text:"What do we call colors like blue and green that feel cool?",answer:'Cool colors',choices:['Cool colors','Warm colors','Bright colors','Dull colors']},
+      {text:"What do we call an artist's stand for a canvas?",answer:'Easel',choices:['Easel','Palette','Frame','Sketchbook']},
+      {text:"Which famous artist painted the Mona Lisa?",answer:'Leonardo da Vinci',choices:['Leonardo da Vinci','Pablo Picasso','Vincent van Gogh','Claude Monet']},
+      {text:"What do we call a rough first drawing of an idea?",answer:'Sketch',choices:['Sketch','Portrait','Mosaic','Sculpture']},
+      {text:"What is the term for the main subject of a photo or painting?",answer:'Focal point',choices:['Focal point','Background','Frame','Border']},
+      {text:"Which art supply is used for watercolor painting?",answer:'Watercolor paint and water',choices:['Watercolor paint and water','Oil and turpentine','Clay and a wheel','Charcoal only']},
+      {text:"What do we call the outline of a shape in art?",answer:'Contour',choices:['Contour','Shadow','Highlight','Texture']}
+    ],
+    music:[
+      {text:"What do we call the highness or lowness of a sound?",answer:'Pitch',choices:['Pitch','Tempo','Volume','Rhythm']},
+      {text:"How many lines are on a musical staff?",answer:5,choices:[5,4,6,7]},
+      {text:"What does 'forte' mean in music?",answer:'Loud',choices:['Loud','Soft','Fast','Slow']},
+      {text:"Which instrument family does the clarinet belong to?",answer:'Woodwind',choices:['Woodwind','Brass','Strings','Percussion']},
+      {text:"What do we call two or more notes played together that sound pleasant?",answer:'Harmony',choices:['Harmony','Rhythm','Tempo','Pitch']},
+      {text:"What symbol tells a musician which notes to play at the start of a piece?",answer:'Clef',choices:['Clef','Rest','Bar line','Time signature']},
+      {text:"What does 'piano' mean when written in sheet music?",answer:'Soft',choices:['Soft','Loud','Fast','Slow']},
+      {text:"Which instrument uses a reed to make sound?",answer:'Clarinet',choices:['Clarinet','Violin','Drum','Piano']},
+      {text:"What do we call a piece of music written for one performer alone?",answer:'Solo',choices:['Solo','Duet','Choir','Orchestra']},
+      {text:"What do we call the main tune of a song that you hum or sing?",answer:'Melody',choices:['Melody','Harmony','Tempo','Rest']},
+      {text:"What do we call the beat you tap your foot to?",answer:'Pulse',choices:['Pulse','Melody','Harmony','Pitch']},
+      {text:"Which of these is a percussion instrument?",answer:'Xylophone',choices:['Xylophone','Violin','Trumpet','Flute']},
+      {text:"What does 'duet' mean?",answer:'Music for two performers',choices:['Music for two performers','Music for one performer','Music for a full orchestra','Silent music']}
+    ],
+    animal:[
+      {text:"Which group of animals includes frogs and toads?",answer:'Amphibians',choices:['Amphibians','Reptiles','Mammals','Fish']},
+      {text:"What is a group of lions called?",answer:'A pride',choices:['A pride','A pack','A herd','A flock']},
+      {text:"Which animal has one of the longest lifespans?",answer:'Tortoise',choices:['Tortoise','Dog','Rabbit','Mouse']},
+      {text:"What do we call animals that eat both meat and plants?",answer:'Omnivores',choices:['Omnivores','Herbivores','Carnivores','Decomposers']},
+      {text:"Which shark is the largest fish in the ocean?",answer:'Whale shark',choices:['Whale shark','Great white shark','Hammerhead shark','Tiger shark']},
+      {text:"Which animal is known for its excellent memory?",answer:'Elephant',choices:['Elephant','Mouse','Rabbit','Frog']},
+      {text:"What is a baby butterfly called before it forms a cocoon?",answer:'Caterpillar',choices:['Caterpillar','Larva','Pupa','Nymph']},
+      {text:"Which bird has the largest wingspan?",answer:'Albatross',choices:['Albatross','Sparrow','Robin','Crow']},
+      {text:"What do we call animals active during the day?",answer:'Diurnal',choices:['Diurnal','Nocturnal','Aquatic','Migratory']},
+      {text:"Which animal is known for regrowing lost limbs?",answer:'Starfish',choices:['Starfish','Dog','Bird','Lion']}
+    ],
+    code:[
+      {text:"What is debugging?",answer:'Finding and fixing errors in code',choices:['Finding and fixing errors in code','Writing new code','Deleting a program','Naming variables']},
+      {text:"What does a conditional (if/then) statement do?",answer:'Makes a decision based on a condition',choices:['Makes a decision based on a condition','Repeats an action forever','Stores a number','Deletes data']},
+      {text:"Complete the pattern: 1,1,2,3,5,8, ?",answer:13,choices:[13,10,11,15]},
+      {text:"What is a 'function' in programming?",answer:'A reusable block of code',choices:['A reusable block of code','A type of error','A random number','A color']},
+      {text:"If a loop repeats 3 times doing one action each time, how many actions happen?",answer:3,choices:[3,1,6,9]},
+      {text:"What does 'binary' mean in computing?",answer:'A system using only 0s and 1s',choices:['A system using only 0s and 1s','A system using letters only','A type of virus','A kind of screen']},
+      {text:"When solving a problem, what comes first: understanding it or coding it?",answer:'Understanding it',choices:['Understanding it','Coding the solution','Neither matters','Testing it']},
+      {text:"What is an array used for in coding?",answer:'Storing a list of items',choices:['Storing a list of items','Deleting a program','Drawing a picture','Playing a sound']},
+      {text:"What do we call testing code to make sure it works?",answer:'Testing',choices:['Testing','Deleting','Ignoring','Guessing']},
+      {text:"In a maze, what does 'trial and error' mean?",answer:'Trying different paths until one works',choices:['Trying different paths until one works','Giving up immediately','Following one path blindly','Skipping the maze']}
+    ]
+  },
+  4:{
+    math:[
+      {text:"What is 3/4 as a decimal?",answer:'0.75',choices:['0.75','0.34','0.43','0.7']},
+      {text:"144 ÷ 12 = ?",answer:12,choices:[12,11,13,14]},
+      {text:"What is 15% of 200?",answer:30,choices:[30,15,20,45]},
+      {text:"8 × 12 = ?",answer:96,choices:[96,88,108,84]},
+      {text:"Simplify 6/8",answer:'3/4',choices:['3/4','2/3','4/5','1/2']},
+      {text:"What is 2/3 + 1/3?",answer:'1',choices:['1','2','2/3','0']},
+      {text:"125 − 47 = ?",answer:78,choices:[78,68,82,88]},
+      {text:"Area of a rectangle 5 × 4?",answer:20,choices:[20,18,9,24]},
+      {text:"What is 30% of 150?",answer:45,choices:[45,30,50,35]},
+      {text:"Simplify 10/15",answer:'2/3',choices:['2/3','1/2','3/5','4/5']},
+      {text:"What is 60% of 50?",answer:30,choices:[30,25,35,40]},
+      {text:"9 × 11 = ?",answer:99,choices:[99,90,108,89]},
+      {text:"Simplify 8/12",answer:'2/3',choices:['2/3','3/4','1/2','4/5']}
+    ],
+    science:[
+      {text:"What force pulls objects toward Earth?",answer:'Gravity',choices:['Gravity','Magnetism','Friction','Energy']},
+      {text:"Which organ helps us breathe?",answer:'Lungs',choices:['Lungs','Heart','Liver','Kidneys']},
+      {text:"Tiny building blocks of living things are called?",answer:'Cells',choices:['Cells','Atoms','Molecules','Tissues']},
+      {text:"Which energy type comes from the sun?",answer:'Solar',choices:['Solar','Wind','Nuclear','Geothermal']},
+      {text:"Water rising into the sky is called?",answer:'Evaporation',choices:['Evaporation','Condensation','Precipitation','Collection']},
+      {text:"Which group do frogs belong to?",answer:'Amphibians',choices:['Amphibians','Reptiles','Mammals','Fish']},
+      {text:"Living and non-living things interacting form an?",answer:'Ecosystem',choices:['Ecosystem','Habitat','Biome','Population']},
+      {text:"Which is a renewable energy source?",answer:'Wind',choices:['Wind','Coal','Oil','Natural gas']},
+      {text:"What is the smallest unit of life called?",answer:'Cell',choices:['Cell','Atom','Organ','Tissue']},
+      {text:"Which state of matter has no fixed shape or volume?",answer:'Gas',choices:['Gas','Solid','Liquid','Plasma']},
+      {text:"What is a caterpillar becoming a butterfly called?",answer:'Metamorphosis',choices:['Metamorphosis','Photosynthesis','Evaporation','Migration']},
+      {text:"Which layer of Earth do we live on?",answer:'Crust',choices:['Crust','Mantle','Core','Atmosphere']},
+      {text:"What do vaccines help our body do?",answer:'Fight disease',choices:['Fight disease','Grow taller','Sleep better','See clearer']}
+    ],
+    word:[
+      {text:"Which word is a synonym for 'enormous'?",answer:'Huge',choices:['Huge','Tiny','Average','Narrow']},
+      {text:"Identify the adverb: 'She sang beautifully.'",answer:'Beautifully',choices:['Beautifully','Sang','She','.']},
+      {text:"What is the correct plural of 'mouse'?",answer:'Mice',choices:['Mice','Mouses','Mices','Mouse']},
+      {text:"Which is an example of a metaphor?",answer:'Time is money.',choices:['Time is money.','It is raining.','The car is red.','She is running.']},
+      {text:"Choose the correctly punctuated sentence.",answer:"Let's eat, Grandma!",choices:["Let's eat, Grandma!","Lets eat grandma","let's eat grandma!","Lets, eat Grandma"]},
+      {text:"What is the antonym of 'generous'?",answer:'Selfish',choices:['Selfish','Kind','Giving','Warm']},
+      {text:"Which word is a conjunction?",answer:'And',choices:['And','Quickly','Table','Run']},
+      {text:"Identify the noun in: 'The dog barked loudly.'",answer:'Dog',choices:['Dog','Barked','Loudly','The']},
+      {text:"Which word is a preposition?",answer:'Under',choices:['Under','Quickly','Table','Jump']},
+      {text:"What is the correct spelling?",answer:'Separate',choices:['Separate','Seperate','Separrate','Seperete']},
+      {text:"Which word is an interjection?",answer:'Wow',choices:['Wow','Quickly','Table','Jump']},
+      {text:"What is the correct past tense of 'go'?",answer:'Went',choices:['Went','Goed','Gone','Going']},
+      {text:"Which word means 'to examine closely'?",answer:'Scrutinize',choices:['Scrutinize','Ignore','Glance','Forget']}
+    ],
+    space:[
+      {text:"What force keeps planets in orbit around the Sun?",answer:'Gravity',choices:['Gravity','Magnetism','Wind','Friction']},
+      {text:"How long does it take Earth to orbit the Sun?",answer:'1 year',choices:['1 year','1 day','1 month','10 years']},
+      {text:"What is a shooting star actually?",answer:'A meteor',choices:['A meteor','A planet','A comet','A satellite']},
+      {text:"Which planet is known for its Great Red Spot?",answer:'Jupiter',choices:['Jupiter','Mars','Saturn','Uranus']},
+      {text:"What do we call a large rock that orbits the Sun?",answer:'Asteroid',choices:['Asteroid','Comet','Meteor','Satellite']},
+      {text:"What is the closest planet to the Sun?",answer:'Mercury',choices:['Mercury','Venus','Earth','Mars']},
+      {text:"What keeps astronauts floating in space?",answer:'Microgravity',choices:['Microgravity','Air pressure','Wind','Temperature']},
+      {text:"Which of these is not a planet?",answer:'Pluto',choices:['Pluto','Mars','Venus','Saturn']},
+      {text:"What was the first spacecraft to land humans on the Moon?",answer:'Apollo 11',choices:['Apollo 11','Sputnik 1','Voyager 1','Challenger']},
+      {text:"Which force is weaker on the Moon than on Earth?",answer:'Gravity',choices:['Gravity','Light','Heat','Sound']},
+      {text:"What is the point in orbit farthest from Earth called?",answer:'Apogee',choices:['Apogee','Perigee','Zenith','Nadir']},
+      {text:"Which mission explored Mars with the Curiosity rover?",answer:'Mars Science Laboratory',choices:['Mars Science Laboratory','Apollo 11','Voyager 2','Hubble']},
+      {text:"What causes a solar eclipse?",answer:'The Moon blocking the Sun',choices:['The Moon blocking the Sun','Earth blocking the Sun','Clouds covering the Sun','The Sun turning off']}
+    ],
+    green:[
+      {text:"What is the main cause of global warming?",answer:'Greenhouse gases',choices:['Greenhouse gases','Rain','Wind','Snow']},
+      {text:"Which of these is a fossil fuel?",answer:'Coal',choices:['Coal','Sunlight','Wind','Water']},
+      {text:"What term describes using resources without running out?",answer:'Sustainability',choices:['Sustainability','Extraction','Pollution','Consumption']},
+      {text:"What is biodiversity?",answer:'Variety of living things',choices:['Variety of living things','Number of trees','Amount of water','Type of soil']},
+      {text:"Which action helps conserve water?",answer:'Turning off the tap',choices:['Turning off the tap','Leaving it running','Watering at noon','Washing cars daily']},
+      {text:"What is the layer of gases that protects Earth called?",answer:'Atmosphere',choices:['Atmosphere','Ozone','Crust','Mantle']},
+      {text:"What causes acid rain?",answer:'Air pollution',choices:['Air pollution','Clean air','Sunlight','Wind']},
+      {text:"Which practice helps restore forests?",answer:'Reforestation',choices:['Reforestation','Deforestation','Mining','Overfishing']},
+      {text:"What is an invasive species?",answer:'A species that harms a new ecosystem it enters',choices:['A species that harms a new ecosystem it enters','A species that is extinct','A species only found in water','A species that only eats plants']},
+      {text:"Which practice helps prevent soil erosion?",answer:'Planting trees',choices:['Planting trees','Deforestation','Overgrazing','Paving land']},
+      {text:"What does 'carbon neutral' mean?",answer:'Balancing carbon emissions with removal',choices:['Balancing carbon emissions with removal','Using no carbon at all','Burning more fossil fuels','Ignoring emissions']},
+      {text:"Which of these helps reduce plastic waste?",answer:'Reusable bags',choices:['Reusable bags','Single-use bottles','Plastic straws','Disposable cutlery']},
+      {text:"What is a keystone species?",answer:'A species other species depend heavily on',choices:['A species other species depend heavily on','The largest animal in a habitat','A species that is always extinct','A type of plant only']}
+    ],
+    art:[
+      {text:"Which art movement is Vincent van Gogh known for?",answer:'Post-Impressionism',choices:['Post-Impressionism','Cubism','Surrealism','Pop Art']},
+      {text:"What do we call colors opposite each other on the color wheel?",answer:'Complementary colors',choices:['Complementary colors','Primary colors','Analogous colors','Neutral colors']},
+      {text:"What is perspective in art used to show?",answer:'Depth and distance',choices:['Depth and distance','Bright colors','Rough texture','Loud sound']},
+      {text:"Who painted 'Starry Night'?",answer:'Vincent van Gogh',choices:['Vincent van Gogh','Pablo Picasso','Leonardo da Vinci','Claude Monet']},
+      {text:"What art style uses geometric shapes to show objects from many angles?",answer:'Cubism',choices:['Cubism','Impressionism','Realism','Abstract']},
+      {text:"What do we call the surface quality of art, like rough or smooth?",answer:'Texture',choices:['Texture','Value','Hue','Balance']},
+      {text:"What is a print made from carved wood or linoleum called?",answer:'Block print',choices:['Block print','Watercolor','Fresco','Mosaic']},
+      {text:"What do we call art that doesn't show real objects?",answer:'Abstract art',choices:['Abstract art','Portrait art','Realism','Landscape art']},
+      {text:"Which artist is famous for cutting off part of his own ear?",answer:'Vincent van Gogh',choices:['Vincent van Gogh','Pablo Picasso','Claude Monet','Salvador Dalí']},
+      {text:"What do we call a painting technique using dabs of pure color?",answer:'Pointillism',choices:['Pointillism','Cubism','Realism','Fresco']},
+      {text:"Which art style shows exaggerated, dreamlike scenes?",answer:'Surrealism',choices:['Surrealism','Realism','Minimalism','Classicism']},
+      {text:"What is a 'still life' painting typically of?",answer:'Arranged objects like fruit or flowers',choices:['Arranged objects like fruit or flowers','Moving people','Landscapes only','Portraits only']},
+      {text:"What does 'monochrome' mean in art?",answer:'Using only one color',choices:['Using only one color','Using every color','Using no color','Using black only']}
+    ],
+    music:[
+      {text:"What is a time signature used to show?",answer:'Beats per measure',choices:['Beats per measure','Loudness','Instrument type','Song title']},
+      {text:"What do we call a musical scale with 8 notes returning to the start?",answer:'Octave',choices:['Octave','Chord','Tempo','Key']},
+      {text:"Which composer wrote 'The Four Seasons'?",answer:'Antonio Vivaldi',choices:['Antonio Vivaldi','Wolfgang Amadeus Mozart','Ludwig van Beethoven','Johann Sebastian Bach']},
+      {text:"What do we call three or more notes played together?",answer:'Chord',choices:['Chord','Octave','Rest','Beat']},
+      {text:"What does 'a cappella' mean?",answer:'Singing with no instruments',choices:['Singing with no instruments','Singing very loudly','Playing only drums','Playing very fast']},
+      {text:"Which composer became deaf but kept composing music?",answer:'Ludwig van Beethoven',choices:['Ludwig van Beethoven','Mozart','Bach','Vivaldi']},
+      {text:"What do we call the pattern of sharps and flats that sets a song's key?",answer:'Key signature',choices:['Key signature','Time signature','Clef','Tempo marking']},
+      {text:"Which instrument family includes the trombone and tuba?",answer:'Brass',choices:['Brass','Woodwind','Strings','Percussion']},
+      {text:"What is improvisation in music?",answer:'Making up music on the spot',choices:['Making up music on the spot','Copying sheet music exactly','Playing very quietly','Tuning an instrument']},
+      {text:"A musical performance for one instrument with orchestra accompaniment is called?",answer:'Concerto',choices:['Concerto','Symphony','Sonata','Etude']},
+      {text:"What is a 'round', like 'Row Row Row Your Boat'?",answer:'A song sung in overlapping repeats',choices:['A song sung in overlapping repeats','A single loud note','A type of drum','A fast tempo marking']},
+      {text:"Which composer wrote 'The Magic Flute'?",answer:'Wolfgang Amadeus Mozart',choices:['Wolfgang Amadeus Mozart','Ludwig van Beethoven','Johann Sebastian Bach','Frédéric Chopin']},
+      {text:"What does 'legato' mean when playing music?",answer:'Smooth and connected',choices:['Smooth and connected','Short and detached','Very loud','Very fast']}
+    ],
+    animal:[
+      {text:"Which big cat cannot roar?",answer:'Cheetah',choices:['Cheetah','Lion','Tiger','Jaguar']},
+      {text:"What is the study of animals called?",answer:'Zoology',choices:['Zoology','Botany','Geology','Astronomy']},
+      {text:"Which animal has one of the strongest bite forces?",answer:'Saltwater crocodile',choices:['Saltwater crocodile','Lion','Shark','Hyena']},
+      {text:"What do we call animals that migrate seasonally?",answer:'Migratory animals',choices:['Migratory animals','Nocturnal animals','Diurnal animals','Aquatic animals']},
+      {text:"Which mammal lays eggs?",answer:'Platypus',choices:['Platypus','Kangaroo','Dolphin','Bat']},
+      {text:"What is camouflage used for?",answer:'Blending in to hide from predators',choices:['Blending in to hide from predators','Attracting mates only','Staying warm','Finding food only']},
+      {text:"Which animal is known as man's best friend?",answer:'Dog',choices:['Dog','Cat','Horse','Bird']},
+      {text:"What do we call animals shedding their skin?",answer:'Molting',choices:['Molting','Hibernating','Migrating','Camouflaging']},
+      {text:"Which ocean animal is actually a mammal?",answer:'Dolphin',choices:['Dolphin','Shark','Tuna','Jellyfish']},
+      {text:"What is a symbiotic relationship?",answer:'A close interaction between two species',choices:['A close interaction between two species','A type of predator attack','A form of hibernation','A type of migration']}
+    ],
+    code:[
+      {text:"What is a flowchart used for?",answer:'Visually mapping out steps in a process',choices:['Visually mapping out steps in a process','Storing passwords','Drawing art','Playing music']},
+      {text:"What does 'iteration' mean in programming?",answer:'Repeating a process',choices:['Repeating a process','Ending a program','Naming a file','Deleting data']},
+      {text:"What is the purpose of a 'for loop'?",answer:'Repeating an action a set number of times',choices:['Repeating an action a set number of times','Stopping a program instantly','Storing one value','Drawing a shape']},
+      {text:"What does 'syntax' mean in coding?",answer:'The rules for how code must be written',choices:['The rules for how code must be written','A type of error message','A programming language name','A computer part']},
+      {text:"What is a Boolean value?",answer:'True or false',choices:['True or false','Any number','A type of loop','A color code']},
+      {text:"What does an algorithm's 'efficiency' measure?",answer:'How fast and resource-light it runs',choices:['How fast and resource-light it runs','How colorful the output is','How long the code is written','How many bugs it has']},
+      {text:"What is recursion in programming?",answer:'A function calling itself',choices:['A function calling itself','A loop that never ends','A type of variable','A coding error']},
+      {text:"What does 'input validation' check for?",answer:'That entered data is correct and expected',choices:['That entered data is correct and expected','That the screen is the right color','That the code is short','That the program is offline']},
+      {text:"What is pseudocode?",answer:'A plain-language outline of code logic',choices:['A plain-language outline of code logic','A programming language','A type of computer virus','A hardware component']},
+      {text:"What does 'nested' mean for loops or conditions?",answer:'One inside another',choices:['One inside another','Running twice as fast','Written in binary','Deleted automatically']}
+    ]
+  },
+  5:{
+    math:[
+      {text:"Solve for x: x + 7 = 15",answer:8,choices:[8,7,22,9]},
+      {text:"What is 25% of 80?",answer:20,choices:[20,25,15,40]},
+      {text:"Solve for x: 3x = 21",answer:7,choices:[7,6,8,24]},
+      {text:"What is the square root of 81?",answer:9,choices:[9,8,7,10]},
+      {text:"Simplify: 2(x + 3)",answer:'2x + 6',choices:['2x + 6','2x + 3','x + 6','2x']},
+      {text:"What is 12²?",answer:144,choices:[144,124,132,164]},
+      {text:"Convert 3/5 to a percentage",answer:'60%',choices:['60%','35%','53%','65%']},
+      {text:"Solve for x: x − 9 = 14",answer:23,choices:[23,5,22,24]},
+      {text:"Solve for x: 2x − 5 = 11",answer:8,choices:[8,6,7,9]},
+      {text:"What is 40% of 250?",answer:100,choices:[100,90,110,120]},
+      {text:"Solve for x: 4x = 32",answer:8,choices:[8,7,9,6]},
+      {text:"What is 15²?",answer:225,choices:[225,215,235,205]},
+      {text:"What is 1/3 as a decimal (rounded)?",answer:'0.33',choices:['0.33','0.3','3.3','0.133']}
+    ],
+    science:[
+      {text:"What is the chemical symbol for water?",answer:'H2O',choices:['H2O','CO2','O2','NaCl']},
+      {text:"'Every action has an equal and opposite reaction' is whose law?",answer:"Newton's Third Law",choices:["Newton's Third Law","Law of Gravity","Law of Conservation","Ohm's Law"]},
+      {text:"What is the powerhouse of the cell called?",answer:'Mitochondria',choices:['Mitochondria','Nucleus','Ribosome','Chloroplast']},
+      {text:"Which gas do plants absorb from the air?",answer:'Carbon dioxide',choices:['Carbon dioxide','Oxygen','Nitrogen','Hydrogen']},
+      {text:"Stored energy is called?",answer:'Potential',choices:['Potential','Kinetic','Thermal','Sound']},
+      {text:"Which atomic particle has a negative charge?",answer:'Electron',choices:['Electron','Proton','Neutron','Nucleus']},
+      {text:"Boiling point of water at sea level (°C)?",answer:100,choices:[100,90,120,0]},
+      {text:"Cells release energy from food through?",answer:'Respiration',choices:['Respiration','Photosynthesis','Digestion','Circulation']},
+      {text:"What is DNA short for?",answer:'Deoxyribonucleic acid',choices:['Deoxyribonucleic acid','Dioxide nucleic acid','Deoxy nitrogen acid','Dual nucleic acid']},
+      {text:"Which particle in an atom has no electric charge?",answer:'Neutron',choices:['Neutron','Proton','Electron','Ion']},
+      {text:"What is homeostasis?",answer:'The body keeping stable conditions',choices:['The body keeping stable conditions','A type of cell','A disease','A muscle']},
+      {text:"Which blood type is a universal donor?",answer:'O negative',choices:['O negative','AB positive','A positive','B negative']},
+      {text:"What is the function of ribosomes in a cell?",answer:'Making proteins',choices:['Making proteins','Storing water','Producing energy','Breaking down waste']}
+    ],
+    word:[
+      {text:"What does the idiom 'break the ice' mean?",answer:'Start a conversation',choices:['Start a conversation','Break something','Feel cold','Go swimming']},
+      {text:"Which word means 'to persuade'?",answer:'Convince',choices:['Convince','Confuse','Ignore','Deny']},
+      {text:"Which sentence is a simile (uses 'like' or 'as')?",answer:'Brave as a lion.',choices:['Brave as a lion.','The lion roared.','He is brave.','The lion ran fast.']},
+      {text:"Which is the correct use of 'they're'?",answer:"They're going home.",choices:["They're going home.","Their going home.","There going home.","Theyre going home."]},
+      {text:"Which word means the opposite of 'abundant'?",answer:'Scarce',choices:['Scarce','Plentiful','Rich','Full']},
+      {text:"What type of word is 'quickly'?",answer:'Adverb',choices:['Adverb','Noun','Verb','Adjective']},
+      {text:"Which sentence is in passive voice?",answer:'The cake was eaten by Tom.',choices:['The cake was eaten by Tom.','Tom ate the cake.','Tom is eating cake.','Tom will eat cake.']},
+      {text:"What does 'unprecedented' mean?",answer:'Never done before',choices:['Never done before','Very common','Very old','Very small']},
+      {text:"What does the idiom 'once in a blue moon' mean?",answer:'Rarely',choices:['Rarely','Every night','Very often','Never']},
+      {text:"Which word means 'to make something worse'?",answer:'Aggravate',choices:['Aggravate','Alleviate','Assist','Admire']},
+      {text:"What does the idiom 'spill the beans' mean?",answer:'Reveal a secret',choices:['Reveal a secret','Cook dinner','Make a mess','Plant a garden']},
+      {text:"Which word means 'lasting a very short time'?",answer:'Fleeting',choices:['Fleeting','Eternal','Permanent','Constant']},
+      {text:"What is an oxymoron, like 'jumbo shrimp'?",answer:'Contradictory terms together',choices:['Contradictory terms together','A long poem','A type of rhyme','A silent letter']}
+    ],
+    space:[
+      {text:"What is a light-year a measure of?",answer:'Distance',choices:['Distance','Time','Weight','Temperature']},
+      {text:"What is a collapsed star with intense gravity called?",answer:'Black hole',choices:['Black hole','White dwarf','Red giant','Nebula']},
+      {text:"What is the study of stars and space called?",answer:'Astronomy',choices:['Astronomy','Biology','Geology','Chemistry']},
+      {text:"Which galaxy is closest to the Milky Way?",answer:'Andromeda',choices:['Andromeda','Triangulum','Sombrero','Whirlpool']},
+      {text:"What process powers the Sun?",answer:'Nuclear fusion',choices:['Nuclear fusion','Combustion','Nuclear fission','Evaporation']},
+      {text:"What is the boundary around a black hole called?",answer:'Event horizon',choices:['Event horizon','Orbit line','Light barrier','Gravity well']},
+      {text:"What is a nebula?",answer:'A cloud of gas and dust',choices:['A cloud of gas and dust','A dead star','A type of planet','A comet trail']},
+      {text:"Roughly how old is the universe estimated to be?",answer:'13.8 billion years',choices:['13.8 billion years','4.5 billion years','1 million years','100,000 years']},
+      {text:"What is the name for a star that explodes at the end of its life?",answer:'Supernova',choices:['Supernova','Nebula','Pulsar','Quasar']},
+      {text:"What is the term for the point in an orbit closest to the Sun?",answer:'Perihelion',choices:['Perihelion','Aphelion','Zenith','Apogee']},
+      {text:"What is a star's brightness as seen from Earth called?",answer:'Apparent magnitude',choices:['Apparent magnitude','Luminosity','Parallax','Redshift']},
+      {text:"What is the Hubble Space Telescope used for?",answer:'Observing distant space',choices:['Observing distant space','Predicting weather','Communicating with satellites','Measuring gravity']},
+      {text:"What is the theoretical edge of the observable universe called?",answer:'Observable universe edge',choices:['Observable universe edge','Event horizon','Asteroid belt','Kuiper belt']}
+    ],
+    green:[
+      {text:"What is the greenhouse effect?",answer:'Gases trapping heat in the atmosphere',choices:['Gases trapping heat in the atmosphere','Plants growing in greenhouses','Ice melting','Rain falling']},
+      {text:"Which gas is most responsible for climate change?",answer:'Carbon dioxide',choices:['Carbon dioxide','Oxygen','Nitrogen','Helium']},
+      {text:"What is an ecosystem's carrying capacity?",answer:'Max population it can support',choices:['Max population it can support','Total land area','Number of species','Amount of water']},
+      {text:"What is a carbon footprint?",answer:'Amount of CO2 a person produces',choices:['Amount of CO2 a person produces','Size of a forest','Number of trees planted','Amount of trash']},
+      {text:"Which practice reduces a carbon footprint?",answer:'Using renewable energy',choices:['Using renewable energy','Driving more','Burning more coal','Wasting electricity']},
+      {text:"What does 'endangered species' mean?",answer:'At risk of extinction',choices:['At risk of extinction','Very common','Recently discovered','Extremely large']},
+      {text:"What is ocean acidification mainly caused by?",answer:'Absorbed CO2',choices:['Absorbed CO2','Too much salt','Too much sunlight','Too much oxygen']},
+      {text:"What term describes managing resources for future generations?",answer:'Sustainable development',choices:['Sustainable development','Rapid extraction','Overconsumption','Deforestation']},
+      {text:"What is biomagnification?",answer:'Toxins increasing in concentration up the food chain',choices:['Toxins increasing in concentration up the food chain','Animals growing bigger over time','Plants growing faster with fertilizer','Water evaporating faster in heat']},
+      {text:"What term describes an ecosystem's ability to recover after disturbance?",answer:'Resilience',choices:['Resilience','Extinction','Migration','Pollution']},
+      {text:"What is rewilding?",answer:'Restoring natural ecosystems',choices:['Restoring natural ecosystems','Building more cities','Increasing farmland','Draining wetlands']},
+      {text:"What does ocean acidification primarily harm?",answer:'Coral reefs and shellfish',choices:['Coral reefs and shellfish','Mountain ranges','Desert plants','Polar bears only']},
+      {text:"What is the main goal of a circular economy?",answer:'Reduce waste by reusing resources',choices:['Reduce waste by reusing resources','Increase single-use products','Maximize landfill use','Ignore recycling']}
+    ],
+    art:[
+      {text:"Which art movement did Salvador Dalí belong to?",answer:'Surrealism',choices:['Surrealism','Cubism','Realism','Impressionism']},
+      {text:"What does 'chiaroscuro' refer to in art?",answer:'Contrast of light and dark',choices:['Contrast of light and dark','Bright colors only','Rough texture','Perfect symmetry']},
+      {text:"Who painted the ceiling of the Sistine Chapel?",answer:'Michelangelo',choices:['Michelangelo','Leonardo da Vinci','Raphael','Donatello']},
+      {text:"What is the term for art critiquing consumer culture, made famous by Andy Warhol?",answer:'Pop Art',choices:['Pop Art','Baroque','Gothic','Romanticism']},
+      {text:"What does 'symmetry' mean in visual design?",answer:'Balanced halves that mirror each other',choices:['Balanced halves that mirror each other','Random placement','Only one color used','No shapes at all']},
+      {text:"Which art period emphasized emotion and drama, following the Renaissance?",answer:'Baroque',choices:['Baroque','Modernism','Minimalism','Pop Art']},
+      {text:"What is 'negative space' in a composition?",answer:'The empty space around a subject',choices:['The empty space around a subject','The darkest color used','A mistake in the art','The frame of the painting']},
+      {text:"Who is considered a pioneer of abstract art?",answer:'Wassily Kandinsky',choices:['Wassily Kandinsky','Michelangelo','Rembrandt','Caravaggio']},
+      {text:"What technique did Impressionist painters use to capture light?",answer:'Quick visible brushstrokes',choices:['Quick visible brushstrokes','Perfectly smooth blending','Only black and white','Photographic detail']},
+      {text:"What is a 'medium' in art?",answer:'The material used to create the artwork',choices:['The material used to create the artwork','The size of the canvas','The title of the piece','The frame style']},
+      {text:"Which art movement rejected traditional beauty, led by Duchamp?",answer:'Dada',choices:['Dada','Renaissance','Baroque','Rococo']},
+      {text:"What does 'gesso' prepare a canvas for?",answer:'Painting, by priming the surface',choices:['Painting, by priming the surface','Framing','Cutting','Drying faster']},
+      {text:"What is an 'installation' in contemporary art?",answer:'A three-dimensional experiential artwork',choices:['A three-dimensional experiential artwork','A framed painting','A pencil sketch','A photograph only']}
+    ],
+    music:[
+      {text:"Which era of classical music did Mozart belong to?",answer:'Classical',choices:['Classical','Baroque','Romantic','Modern']},
+      {text:"What is counterpoint in music composition?",answer:'Independent melodies played together',choices:['Independent melodies played together','A single loud note','A type of drum beat','A tempo marking']},
+      {text:"What does 'syncopation' mean in rhythm?",answer:'Emphasis on off-beats',choices:['Emphasis on off-beats','Playing very slowly','Only using one instrument','Singing without music']},
+      {text:"Which composer is known for the 'Ninth Symphony' and 'Ode to Joy'?",answer:'Ludwig van Beethoven',choices:['Ludwig van Beethoven','Johann Sebastian Bach','Frédéric Chopin','Pyotr Tchaikovsky']},
+      {text:"What is a 'leitmotif' in music, popularized by Wagner?",answer:'A recurring musical theme for a character or idea',choices:['A recurring musical theme for a character or idea','A type of drum','A fast tempo','A key change']},
+      {text:"What does 'dissonance' mean in music?",answer:'Tension from clashing notes',choices:['Tension from clashing notes','Perfect harmony','A loud volume','A slow tempo']},
+      {text:"What genre rose from the blues in the 1950s, pioneered by artists like Chuck Berry?",answer:'Rock and roll',choices:['Rock and roll','Baroque','Opera','Gregorian chant']},
+      {text:"What is the term for the overall structure of a piece, like verse-chorus?",answer:'Musical form',choices:['Musical form','Pitch','Dynamics','Timbre']},
+      {text:"What does 'timbre' refer to in music?",answer:'The unique tone color of a sound',choices:['The unique tone color of a sound','The speed of a song','The loudness of a song','The key of a song']},
+      {text:"Which invention by Thomas Edison allowed music to be recorded and played back?",answer:'The phonograph',choices:['The phonograph','The radio','The synthesizer','The CD player']},
+      {text:"What does 'polyphony' mean in music?",answer:'Multiple independent melodic lines at once',choices:['Multiple independent melodic lines at once','A single melody only','No melody at all','Only percussion']},
+      {text:"Which musical era followed the Romantic period?",answer:'Modern/20th century',choices:['Modern/20th century','Baroque','Classical','Medieval']},
+      {text:"What is 'musique concrète'?",answer:'Music made from recorded real-world sounds',choices:['Music made from recorded real-world sounds','Music played only on piano','A type of opera','A dance style']}
+    ],
+    animal:[
+      {text:"What term describes species found nowhere else in the world?",answer:'Endemic',choices:['Endemic','Invasive','Migratory','Domesticated']},
+      {text:"What process lets animals survive winter by slowing their metabolism?",answer:'Hibernation',choices:['Hibernation','Migration','Molting','Camouflage']},
+      {text:"What is convergent evolution?",answer:'Unrelated species evolving similar traits',choices:['Unrelated species evolving similar traits','One species splitting into two','Animals learning from each other','A type of animal communication']},
+      {text:"Which animal classification includes both whales and bats?",answer:'Mammals',choices:['Mammals','Reptiles','Amphibians','Fish']},
+      {text:"What is an apex predator?",answer:'A predator at the top of the food chain',choices:['A predator at the top of the food chain','The smallest animal in an ecosystem','An animal that only eats plants','A domesticated animal']},
+      {text:"What does 'ectothermic' mean?",answer:'Relying on external sources for body heat',choices:['Relying on external sources for body heat','Generating body heat internally','Never needing warmth','Living only in cold climates']},
+      {text:"What is it called when animals live and work in structured groups, like ants?",answer:'Eusociality',choices:['Eusociality','Migration','Hibernation','Camouflage']},
+      {text:"What do we call animals that only eat one specific food type?",answer:'Specialist feeders',choices:['Specialist feeders','Generalist feeders','Omnivores','Scavengers']},
+      {text:"Which extinct animal group is the closest ancestor of modern birds?",answer:'Theropod dinosaurs',choices:['Theropod dinosaurs','Mammoths','Sabre-tooth cats','Pterosaurs']},
+      {text:"What is biomimicry?",answer:'Designing technology inspired by nature',choices:['Designing technology inspired by nature','A type of animal camouflage','A hunting strategy','A migration pattern']}
+    ],
+    code:[
+      {text:"What is Big O notation used to describe?",answer:'The efficiency of an algorithm',choices:['The efficiency of an algorithm','The color scheme of a website','The size of a hard drive','The speed of the internet']},
+      {text:"What is the difference between a compiler and an interpreter?",answer:'A compiler translates all code at once; an interpreter runs it line by line',choices:['A compiler translates all code at once; an interpreter runs it line by line','They are the same thing','A compiler only works offline','An interpreter only works with images']},
+      {text:"What is object-oriented programming based around?",answer:'Objects that contain data and behavior',choices:['Objects that contain data and behavior','Only numbers and math','Random code generation','Hardware design']},
+      {text:"What does 'version control' help programmers do?",answer:'Track and manage changes to code over time',choices:['Track and manage changes to code over time','Delete old files permanently','Speed up the internet','Design graphics']},
+      {text:"What is an API used for?",answer:'Letting different software talk to each other',choices:['Letting different software talk to each other','Storing passwords only','Drawing images','Playing sound effects']},
+      {text:"What does 'encryption' do to data?",answer:'Scrambles it so only authorized people can read it',choices:['Scrambles it so only authorized people can read it','Deletes it permanently','Makes it load faster','Converts it to audio']},
+      {text:"What is a 'greedy algorithm'?",answer:'One that makes the best choice at each step without looking ahead',choices:['One that makes the best choice at each step without looking ahead','One that never finishes running','One that only works with numbers','One that deletes unused code']},
+      {text:"What does 'scalability' mean for software?",answer:'Its ability to handle growth in users or data',choices:['Its ability to handle growth in users or data','Its file size on disk','Its color scheme','Its release date']},
+      {text:"What is machine learning?",answer:'Systems that improve at tasks by learning from data',choices:['Systems that improve at tasks by learning from data','A type of computer virus','Manually written rules only','A kind of hardware chip']},
+      {text:"What is the purpose of a 'hash function'?",answer:'Converting data into a fixed-size code for lookup or security',choices:['Converting data into a fixed-size code for lookup or security','Making websites more colorful','Speeding up typing','Playing background music']}
+    ]
+  }
+};
+
+const WORLD_META = {
+  math:{ name:'Math Mountain', icon:'⛰️', accent:'#C9B79C', accentDark:'#8B7A66', river:'#3E7FB0', tunic:'#FF6F59',
+    chapterTitle:'Repair the Bridge', chapterSub:'Answer questions to place stones and reach the peak',
+    celebrateWorldTitle:'🏔️ Bridge Repaired!' },
+  science:{ name:'Science Lab', icon:'🧪', accent:'#B9A8E0', accentDark:'#6E56A8', river:'#5B4E8A', tunic:'#6E56A8',
+    chapterTitle:'Power the Lab', chapterSub:'Answer questions to reconnect the circuits',
+    celebrateWorldTitle:'🧪 Lab Powered Up!' },
+  word:{ name:'Word Forest', icon:'🌲', accent:'#8FBF6A', accentDark:'#5C8C3E', river:'#2F6B4A', tunic:'#3FA34D',
+    chapterTitle:'Grow the Forest Path', chapterSub:'Answer questions to plant stepping stones through the forest',
+    celebrateWorldTitle:'🌲 Forest Path Grown!' },
+  space:{ name:'Space Explorer', icon:'🚀', accent:'#8FA8E0', accentDark:'#4C63A8', river:'#1B1F3B', tunic:'#4C63A8',
+    chapterTitle:'Chart the Stars', chapterSub:'Answer questions to map a path across the galaxy',
+    celebrateWorldTitle:'🚀 Star Path Charted!' },
+  green:{ name:'Green Valley', icon:'🌿', accent:'#A8D98A', accentDark:'#5E9C4A', river:'#2E5E3E', tunic:'#5E9C4A',
+    chapterTitle:'Heal the Valley', chapterSub:'Answer questions to restore the green valley',
+    celebrateWorldTitle:'🌿 Valley Restored!' },
+  art:{ name:'Art Studio', icon:'🎨', accent:'#E8A6C8', accentDark:'#B85E90', river:'#7A3F63', tunic:'#C9538A',
+    chapterTitle:'Paint the Gallery', chapterSub:'Answer questions to fill the gallery with color',
+    celebrateWorldTitle:'🎨 Gallery Painted!' },
+  music:{ name:'Music Meadow', icon:'🎵', accent:'#F2C879', accentDark:'#C98F2E', river:'#8A6A2E', tunic:'#E0972E',
+    chapterTitle:'Tune the Meadow', chapterSub:'Answer questions to bring the melody back',
+    celebrateWorldTitle:'🎵 Melody Restored!' }
+};
+const WORLD_ORDER = ['math','science','word','space','green','art','music'];
+const QUESTIONS_PER_LEVEL = 10;
+const LEVELS_PER_WORLD = 3;
+const WRONG_XP_PENALTY = 5;
+const WRONG_COIN_PENALTY = 2;
+
+/* ---------- STATE ---------- */
+let tier = null;
+let adaptiveEnabled = true;
+let unlocked = {};
+let playOrder = WORLD_ORDER.slice();
+let currentWorldId = 'math';
+let state = { level:1, idx:0, xp:0, locked:false, effectiveTier:1, usedTexts:[], currentQuestion:null };
+
+/* ---------- SOUND EFFECTS & MUSIC ---------- */
+let settings = { music:true, sfx:true, vibration:true };
+let audioCtx = null;
+function getAudioCtx(){
+  if(!audioCtx){
+    try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e){ return null; }
+  }
+  if(audioCtx.state === 'suspended'){ audioCtx.resume().catch(()=>{}); }
+  return audioCtx;
+}
+function playTone(freq, duration, type, volume, delay){
+  const ctx = getAudioCtx();
+  if(!ctx) return;
+  type = type || 'sine'; volume = volume==null ? 0.22 : volume; delay = delay || 0;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  osc.connect(gain); gain.connect(ctx.destination);
+  const t0 = ctx.currentTime + delay;
+  gain.gain.setValueAtTime(0.0001, t0);
+  gain.gain.exponentialRampToValueAtTime(volume, t0 + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+  osc.start(t0);
+  osc.stop(t0 + duration + 0.03);
+}
+
+/* real click sound, embedded */
+const CLICK_SOUND_SRC = "data:audio/mp3;base64,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";
+function playClickSound(){
+  if(!settings.sfx) return;
+  try{
+    const a = new Audio(CLICK_SOUND_SRC);
+    a.volume = 1.0;
+    a.play().catch(()=>{});
+  }catch(e){ playTone(520, 0.06, 'triangle', 0.3); }
+}
+
+function sfxTap(){ if(!settings.sfx) return; playClickSound(); }
+function sfxCorrect(){ if(!settings.sfx) return; playTone(523.25,0.11,'sine',0.5,0); playTone(659.25,0.11,'sine',0.52,0.08); playTone(783.99,0.18,'sine',0.58,0.16); }
+function sfxWrong(){ if(!settings.sfx) return; playTone(220,0.18,'sawtooth',0.46,0); playTone(174,0.24,'sawtooth',0.4,0.09); }
+function sfxHint(){ if(!settings.sfx) return; playTone(440,0.1,'sine',0.4,0); playTone(370,0.15,'sine',0.34,0.07); }
+function sfxLevelUp(){ if(!settings.sfx) return; [523.25,659.25,783.99,1046.5].forEach((f,i)=>playTone(f,0.14,'sine',0.55,i*0.09)); }
+function sfxUnlock(){ if(!settings.sfx) return; playTone(659.25,0.11,'triangle',0.5,0); playTone(987.77,0.2,'triangle',0.55,0.09); }
+function sfxPurchase(){ if(!settings.sfx) return; playTone(659.25,0.08,'sine',0.48,0); playTone(880,0.13,'sine',0.5,0.06); }
+function sfxWhoosh(){ if(!settings.sfx) return; playTone(320,0.15,'sawtooth',0.24,0); }
+
+function vibrateWrong(){
+  if(!settings.vibration) return;
+  if(navigator.vibrate) navigator.vibrate([80,40,80]);
+}
+
+/* background music: a short gentle looping melody, quiet under the sound effects */
+let musicTimer = null;
+let musicStep = 0;
+const MUSIC_MELODY = [
+  {f:523.25,d:0.55},{f:659.25,d:0.55},{f:783.99,d:0.55},{f:659.25,d:0.55},
+  {f:587.33,d:0.55},{f:698.46,d:0.55},{f:880.00,d:0.55},{f:698.46,d:0.55}
+];
+const MUSIC_GAP = 0.06;
+function scheduleMusicNote(){
+  if(!settings.music){ musicTimer = null; return; }
+  const note = MUSIC_MELODY[musicStep % MUSIC_MELODY.length];
+  playTone(note.f, note.d*0.85, 'sine', 0.09, 0);
+  musicStep++;
+  musicTimer = setTimeout(scheduleMusicNote, (note.d + MUSIC_GAP) * 1000);
+}
+function startMusic(){
+  if(musicTimer || !settings.music) return;
+  scheduleMusicNote();
+}
+function stopMusic(){
+  if(musicTimer){ clearTimeout(musicTimer); musicTimer = null; }
+}
+let audioUnlocked = false;
+function unlockAudioOnce(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  getAudioCtx();
+  if(settings.music) startMusic();
+}
+
+function toggleSetting(key){
+  settings[key] = !settings[key];
+  saveGame();
+  updateSettingsUI();
+  if(key === 'music'){
+    if(settings.music) startMusic(); else stopMusic();
+  }
+  if(key === 'sfx' && settings.sfx) sfxTap();
+}
+
+function updateSettingsUI(){
+  const map = { music:'toggleMusic', sfx:'toggleSfx', vibration:'toggleVibration' };
+  Object.keys(map).forEach(k => {
+    const el = document.getElementById(map[k]);
+    if(el) el.classList.toggle('on', settings[k]);
+  });
+}
+
+/* ---------- PERSISTENT WALLET & STORE ---------- */
+const SAVE_KEY = 'questkids_save_v1';
+const HINT_XP_COST = 10;
+const HINT_COIN_COST = 5;
+let coins = 0;
+let ownedSkins = ['default'];
+let ownedBackgrounds = ['default'];
+let ownedBridges = ['default'];
+let equippedSkin = 'default';
+let equippedBackground = 'default';
+let equippedBridge = 'default';
+let currentStoreTab = 'skins';
+
+const SKINS = [
+  {id:'default', name:'Explorer', price:0, tunic:null},
+  {id:'sunny', name:'Sunny', price:30, tunic:'#F5C542'},
+  {id:'ocean', name:'Ocean', price:30, tunic:'#3AA8C9'},
+  {id:'royal', name:'Royal', price:60, tunic:'#8A5AC9'},
+  {id:'forest', name:'Forest', price:45, tunic:'#4A9B5E'},
+  {id:'shadow', name:'Shadow', price:90, tunic:'#3A3550'},
+  {id:'blossom', name:'Blossom', price:40, tunic:'#E87DA6'},
+  {id:'galactic', name:'Galactic', price:100, tunic:'#4B2E83'}
+];
+const BACKGROUNDS = [
+  {id:'default', name:'Daytime', price:0, gradient:'linear-gradient(180deg,#4A6FA5 0%, #6D93C4 55%, #86A9CE 100%)'},
+  {id:'sunset', name:'Sunset', price:40, gradient:'linear-gradient(180deg,#E8834E 0%, #F2A65A 45%, #F7CF8B 100%)'},
+  {id:'night', name:'Starry Night', price:40, gradient:'linear-gradient(180deg,#0F1233 0%, #232B5C 55%, #3B3F7A 100%)'},
+  {id:'aurora', name:'Aurora', price:80, gradient:'linear-gradient(180deg,#123B3A 0%, #1E6E5C 45%, #4FA687 100%)'},
+  {id:'rainy', name:'Rainy Day', price:35, gradient:'linear-gradient(180deg,#5C6B7A 0%, #7A8B9A 55%, #A8B8C4 100%)'},
+  {id:'candy', name:'Candy Sky', price:90, gradient:'linear-gradient(180deg,#F2A6D8 0%, #D9A6F2 45%, #A6C4F2 100%)'},
+  {id:'desert', name:'Desert', price:45, gradient:'linear-gradient(180deg,#E0A857 0%, #EDC27E 45%, #F5DCA8 100%)'},
+  {id:'deepsea', name:'Deep Sea', price:75, gradient:'linear-gradient(180deg,#0A2A3F 0%, #114A5F 55%, #1B7A8C 100%)'}
+];
+const BRIDGES = [
+  {id:'default', name:'Classic', price:0, far:['#7692C4','#5B7FAE'], mid:['#6482B8','#4A6FA5'], near:['#4E6DA0','#3E5C92']},
+  {id:'autumn', name:'Autumn', price:50, far:['#E0AE7A','#D99A5B'], mid:['#D08A4E','#C97D42'], near:['#B5602E','#8F4A22']},
+  {id:'crystal', name:'Crystal', price:70, far:['#D6EEF7','#BEE3F0'], mid:['#B0DCEE','#9AD0E6'], near:['#84C4DE','#6FB8D9']},
+  {id:'volcanic', name:'Volcanic', price:65, far:['#B85C4E','#8F3B2E'], mid:['#A3432F','#7A2E1E'], near:['#7A2418','#5C1A10']},
+  {id:'emerald', name:'Emerald', price:85, far:['#7ACB9A','#4F9E6E'], mid:['#5CAD7A','#3B8556'], near:['#3B8556','#276B3E']},
+  {id:'golden', name:'Golden Hour', price:75, far:['#F2C879','#E0A857'], mid:['#E0A857','#C9822E'], near:['#C9822E','#A8621E']},
+  {id:'arctic', name:'Arctic', price:60, far:['#EAF6FC','#D0ECF7'], mid:['#C2E4F2','#A8D6EC'], near:['#9BCBE6','#7DB8DE']}
+];
+const STORE_CATALOG = { skins:SKINS, backgrounds:BACKGROUNDS, bridges:BRIDGES };
+
+function loadSave(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw){
+      const data = JSON.parse(raw);
+      coins = data.coins || 0;
+      ownedSkins = data.ownedSkins || ['default'];
+      ownedBackgrounds = data.ownedBackgrounds || ['default'];
+      ownedBridges = data.ownedBridges || ['default'];
+      equippedSkin = data.equippedSkin || 'default';
+      equippedBackground = data.equippedBackground || 'default';
+      equippedBridge = data.equippedBridge || 'default';
+      if(data.settings) settings = Object.assign({music:true,sfx:true,vibration:true}, data.settings);
+    }
+  }catch(e){ /* localStorage blocked in this preview sandbox — falls back to in-memory only for this session */ }
+}
+
+function saveGame(){
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ coins, ownedSkins, ownedBackgrounds, ownedBridges, equippedSkin, equippedBackground, equippedBridge, settings }));
+  }catch(e){ /* localStorage blocked in this preview sandbox — progress won't persist here, but will once hosted */ }
+}
+
+function updateCoinDisplays(){
+  const c1 = document.getElementById('coinCount'); if(c1) c1.textContent = coins;
+  const c2 = document.getElementById('storeCoinCount'); if(c2) c2.textContent = coins;
+  const c3 = document.getElementById('homeCoinCount'); if(c3) c3.textContent = coins;
+}
+
+function applyBackgroundTheme(){
+  const bg = BACKGROUNDS.find(b => b.id === equippedBackground) || BACKGROUNDS[0];
+  const scene = document.getElementById('sceneWrap');
+  if(scene) scene.style.background = bg.gradient;
+}
+
+function applyBridgeTheme(){
+  const b = BRIDGES.find(x => x.id === equippedBridge) || BRIDGES[0];
+  const ids = ['mtFarStop1','mtFarStop2','mtMidStop1','mtMidStop2','mtNearStop1','mtNearStop2'];
+  const colors = [b.far[0], b.far[1], b.mid[0], b.mid[1], b.near[0], b.near[1]];
+  ids.forEach((id,i) => { const el = document.getElementById(id); if(el) el.setAttribute('stop-color', colors[i]); });
+}
+
+function switchStoreTab(cat){
+  sfxTap();
+  currentStoreTab = cat;
+  document.querySelectorAll('.store-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+  renderStoreGrid();
+}
+
+function skinPreviewSVG(item){
+  const color = item.tunic || '#FF6F59';
+  return `<svg viewBox="0 0 60 54" preserveAspectRatio="xMidYMid slice"><ellipse cx="30" cy="47" rx="20" ry="4" fill="#000" opacity="0.14"/><path d="M11 30 q19 -14 38 0 l0 17 q-19 9 -38 0 z" fill="${color}"/><path d="M11 30 q19 -14 38 0 l0 4 q-19 -7 -38 0 z" fill="#000" opacity="0.08"/><circle cx="30" cy="17" r="13" fill="#FFD7B0"/><path d="M18 12 q12 -9 24 0 q-5 -3 -12 -3 q-7 0 -12 3z" fill="#7A4A2B"/><circle cx="25.5" cy="18" r="1.6" fill="#3B2A22"/><circle cx="34.5" cy="18" r="1.6" fill="#3B2A22"/><path d="M24 23 q6 4 12 0" fill="none" stroke="#B5673F" stroke-width="1.6" stroke-linecap="round"/><circle cx="21" cy="21" r="2" fill="#FFB199" opacity="0.55"/><circle cx="39" cy="21" r="2" fill="#FFB199" opacity="0.55"/></svg>`;
+}
+
+function backgroundPreviewSVG(item){
+  const hexes = item.gradient.match(/#[0-9A-Fa-f]{6}/g) || ['#4A6FA5','#86A9CE'];
+  const stops = hexes.map((c,i) => `<stop offset="${(i/(hexes.length-1||1))*100}%" stop-color="${c}"/>`).join('');
+  const isNight = item.id === 'night';
+  const isAurora = item.id === 'aurora';
+  const celestial = isNight
+    ? `<circle cx="44" cy="12" r="6" fill="#F2EFE0"/><circle cx="10" cy="9" r="1" fill="#fff"/><circle cx="20" cy="16" r="1" fill="#fff"/><circle cx="34" cy="7" r="1" fill="#fff"/><circle cx="50" cy="22" r="1" fill="#fff"/>`
+    : `<circle cx="44" cy="12" r="7" fill="#FFE9A8"/>`;
+  const extra = isAurora ? `<path d="M0 18 q15 -8 30 0 t30 0" stroke="#9CF5D0" stroke-width="2" fill="none" opacity="0.6"/>` : '';
+  return `<svg viewBox="0 0 60 46" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="bgGrad-${item.id}" x1="0" y1="0" x2="0" y2="1">${stops}</linearGradient></defs><rect x="0" y="0" width="60" height="46" fill="url(#bgGrad-${item.id})"/>${celestial}${extra}<polygon points="0,44 14,26 28,44" fill="#000" opacity="0.13"/><polygon points="22,44 40,20 58,44" fill="#000" opacity="0.2"/><rect x="0" y="40" width="60" height="6" fill="#3F7856"/></svg>`;
+}
+
+function bridgePreviewSVG(item){
+  return `<svg viewBox="0 0 60 40" preserveAspectRatio="xMidYMid slice"><rect x="0" y="0" width="60" height="40" fill="#6D93C4"/><polygon points="0,40 14,16 28,40" fill="${item.far[0]}"/><polygon points="18,40 34,8 50,40" fill="${item.near[0]}"/><polygon points="27,40 34,20 41,40" fill="#F2E9D8"/><rect x="0" y="35" width="60" height="5" fill="#4E8F63"/></svg>`;
+}
+
+function renderStoreGrid(){
+  updateCoinDisplays();
+  const grid = document.getElementById('storeGrid');
+  grid.innerHTML = '';
+  const items = STORE_CATALOG[currentStoreTab];
+  const ownedList = currentStoreTab === 'skins' ? ownedSkins : currentStoreTab === 'backgrounds' ? ownedBackgrounds : ownedBridges;
+  const equippedVal = currentStoreTab === 'skins' ? equippedSkin : currentStoreTab === 'backgrounds' ? equippedBackground : equippedBridge;
+
+  items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'store-card';
+    const owned = ownedList.includes(item.id);
+    const equipped = equippedVal === item.id;
+    let previewHTML = '';
+    if(currentStoreTab === 'skins') previewHTML = skinPreviewSVG(item);
+    if(currentStoreTab === 'backgrounds') previewHTML = backgroundPreviewSVG(item);
+    if(currentStoreTab === 'bridges') previewHTML = bridgePreviewSVG(item);
+
+    let actionHtml;
+    if(equipped){
+      actionHtml = `<span class="store-status">Equipped</span>`;
+    } else if(owned){
+      actionHtml = `<button class="store-btn-sm" data-action="equip" data-cat="${currentStoreTab}" data-id="${item.id}">Equip</button>`;
+    } else {
+      const afford = coins >= item.price;
+      actionHtml = `<button class="store-btn-sm ${afford ? '' : 'disabled'}" data-action="buy" data-cat="${currentStoreTab}" data-id="${item.id}">🪙 ${item.price}</button>`;
+    }
+
+    card.innerHTML = `<div class="store-swatch">${previewHTML}</div><div class="store-name">${item.name}</div>${actionHtml}`;
+    grid.appendChild(card);
+  });
+
+  grid.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.onclick = () => {
+      if(btn.dataset.action === 'buy') buyItem(btn.dataset.cat, btn.dataset.id);
+      else equipItem(btn.dataset.cat, btn.dataset.id);
+    };
+  });
+}
+
+function buyItem(cat, id){
+  const item = STORE_CATALOG[cat].find(i => i.id === id);
+  if(!item || coins < item.price) return;
+  coins -= item.price;
+  sfxPurchase();
+  if(cat === 'skins') ownedSkins.push(id);
+  if(cat === 'backgrounds') ownedBackgrounds.push(id);
+  if(cat === 'bridges') ownedBridges.push(id);
+  saveGame();
+  equipItem(cat, id);
+}
+
+function equipItem(cat, id){
+  if(cat === 'skins') equippedSkin = id;
+  if(cat === 'backgrounds') equippedBackground = id;
+  if(cat === 'bridges') equippedBridge = id;
+  saveGame();
+  applyWorldTheme();
+  renderStoreGrid();
+}
+
+/* ---------- SCREEN NAV ---------- */
+function goTo(overlayId, mode){
+  mode = mode || 'rotate';
+  const visibleClass = mode === 'zoomFwd' ? 'visible-zoom' : mode === 'zoomBack' ? 'visible-zoompop' : 'visible';
+  const leavingClass = mode === 'zoomFwd' ? 'leaving-zoom' : mode === 'zoomBack' ? 'leaving-zoompop' : 'leaving';
+  const allStateClasses = ['visible','leaving','visible-zoom','leaving-zoom','visible-zoompop','leaving-zoompop'];
+  const targetId = overlayId || 'gameScreen';
+
+  document.querySelectorAll('.overlay, .game-screen').forEach(o => {
+    const isCurrentlyVisible = o.classList.contains('visible') || o.classList.contains('visible-zoom') || o.classList.contains('visible-zoompop');
+    if(isCurrentlyVisible && o.id !== targetId){
+      allStateClasses.forEach(c => o.classList.remove(c));
+      o.classList.add(leavingClass);
+      setTimeout(() => { o.classList.remove(leavingClass); }, 500);
+    }
+  });
+  const target = document.getElementById(targetId);
+  allStateClasses.forEach(c => target.classList.remove(c));
+  target.classList.add(visibleClass);
+}
+
+let screenStack = ['home'];
+const SCREEN_IDS = { home:'homeOverlay', age:'ageOverlay', subject:'subjectOverlay', store:'storeOverlay', settings:'settingsOverlay', game:null };
+
+function isHomeAgePair(a, b){
+  return (a === 'home' && b === 'age') || (a === 'age' && b === 'home');
+}
+
+function renderScreen(screen, mode){
+  goTo(SCREEN_IDS[screen], mode);
+}
+
+function goToScreen(screen){
+  const from = screenStack[screenStack.length-1];
+  screenStack.push(screen);
+  const mode = isHomeAgePair(from, screen) ? 'zoomFwd' : 'rotate';
+  renderScreen(screen, mode);
+  sfxWhoosh();
+  try{ history.pushState({screen:screen}, '', '#'+screen); }catch(e){ /* history API blocked in some preview sandboxes — safe to ignore */ }
+}
+
+function goBackScreen(){
+  if(screenStack.length > 1){
+    const from = screenStack[screenStack.length-1];
+    screenStack.pop();
+    const to = screenStack[screenStack.length-1];
+    if(to === 'age') buildAgeGrid();
+    if(to === 'subject') buildSubjectGrid();
+    const mode = isHomeAgePair(from, to) ? 'zoomBack' : 'rotate';
+    renderScreen(to, mode);
+    sfxWhoosh();
+  }
+}
+
+window.addEventListener('popstate', function(e){
+  if(screenStack.length > 1){
+    const from = screenStack[screenStack.length-1];
+    screenStack.pop();
+    const to = screenStack[screenStack.length-1];
+    if(to === 'age') buildAgeGrid();
+    if(to === 'subject') buildSubjectGrid();
+    const mode = isHomeAgePair(from, to) ? 'zoomBack' : 'rotate';
+    renderScreen(to, mode);
+  }
+});
+
+/* ---------- AGE SELECT ---------- */
+function buildAgeGrid(){
+  const grid = document.getElementById('ageGrid');
+  grid.innerHTML = '';
+  AGE_GROUPS.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'age-btn';
+    btn.textContent = a.label;
+    btn.onclick = () => chooseAge(a);
+    grid.appendChild(btn);
+  });
+}
+function chooseAge(a){
+  sfxTap();
+  tier = a.tier;
+  adaptiveEnabled = a.adaptive;
+  document.getElementById('ageTag').textContent = 'Age: ' + a.label;
+  buildSubjectGrid();
+  goToScreen('subject');
+}
+
+/* ---------- SUBJECT SELECT ---------- */
+function buildSubjectGrid(){
+  const grid = document.getElementById('subjectGrid');
+  grid.innerHTML = '';
+  WORLD_ORDER.forEach(id => {
+    const w = WORLD_META[id];
+    const btn = document.createElement('button');
+    btn.className = 'subject-btn';
+    btn.innerHTML = `<span class="ico">${w.icon}</span>${w.name}`;
+    btn.onclick = () => chooseSubject(id);
+    grid.appendChild(btn);
+  });
+  const surprise = document.createElement('button');
+  surprise.className = 'surprise-btn';
+  surprise.textContent = '🎲 Surprise me!';
+  surprise.onclick = () => chooseSubject(WORLD_ORDER[Math.floor(Math.random()*WORLD_ORDER.length)]);
+  grid.appendChild(surprise);
+}
+function chooseSubject(worldId){
+  sfxTap();
+  const idx = WORLD_ORDER.indexOf(worldId);
+  playOrder = WORLD_ORDER.slice(idx).concat(WORLD_ORDER.slice(0,idx));
+  unlocked = {}; playOrder.forEach((id,i) => unlocked[id] = (i===0));
+  state.xp = 0;
+  document.getElementById('xpCount').textContent = 0;
+  updateCoinDisplays();
+  goToScreen('game');
+  startWorld(worldId);
+}
+
+/* ---------- SHUFFLE ---------- */
+function shuffle(arr){ return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(p=>p[1]); }
+
+/* ---------- DIFFICULTY / QUESTION SELECTION ---------- */
+function levelBaseTier(level){ return adaptiveEnabled ? Math.min(tier + (level-1), 5) : tier; }
+
+function getNextQuestion(worldId, t){
+  let candidates = POOLS[t][worldId].filter(q => !state.usedTexts.includes(q.text));
+  if(candidates.length === 0 && adaptiveEnabled){
+    for(let tt=1; tt<=5 && candidates.length===0; tt++){
+      candidates = POOLS[tt][worldId].filter(q => !state.usedTexts.includes(q.text));
+    }
+  }
+  if(candidates.length === 0){
+    // shuffle-bag refill: reshuffle this tier's pool, avoiding an immediate repeat of the last question shown
+    const lastText = state.usedTexts[state.usedTexts.length-1];
+    state.usedTexts = state.usedTexts.filter(txt => !POOLS[t][worldId].some(q => q.text === txt));
+    candidates = POOLS[t][worldId].filter(q => q.text !== lastText);
+    if(candidates.length === 0) candidates = POOLS[t][worldId];
+  }
+  return shuffle(candidates)[0];
+}
+
+const DIFF_STARS = {1:'⭐',2:'⭐⭐',3:'⭐⭐⭐',4:'⭐⭐⭐⭐',5:'⭐⭐⭐⭐⭐'};
+
+/* ---------- WORLD / LEVEL FLOW ---------- */
+function startWorld(worldId){
+  currentWorldId = worldId;
+  state = { level:1, idx:0, xp:state.xp, locked:false, effectiveTier:levelBaseTier(1), usedTexts:[], currentQuestion:null };
+  document.getElementById('quizCard').style.display='block';
+  document.getElementById('celebrate').style.display='none';
+  resetTiles();
+  applyWorldTheme();
+  renderWorldStrip();
+  loadNextQuestion();
+}
+
+/* ---------- DYNAMIC BRIDGE ---------- */
+const TILE_WIDTH = 14, TILE_GAP = 3, TILE_PITCH = TILE_WIDTH + TILE_GAP;
+const BRIDGE_START_X = 118;
+const HERO_START_X = BRIDGE_START_X - TILE_PITCH;
+
+function buildBridge(){
+  const bridge = document.getElementById('bridge');
+  bridge.innerHTML = '';
+  for(let i=0; i<QUESTIONS_PER_LEVEL; i++){
+    const x = BRIDGE_START_X + i*TILE_PITCH;
+    const shadow = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+    shadow.setAttribute('cx', x + TILE_WIDTH/2); shadow.setAttribute('cy','198');
+    shadow.setAttribute('rx','8'); shadow.setAttribute('ry','2.4');
+    shadow.setAttribute('fill','#000'); shadow.setAttribute('opacity','0.15');
+    bridge.appendChild(shadow);
+
+    const stone = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    stone.setAttribute('id','stone'+i);
+    stone.setAttribute('x', x); stone.setAttribute('y','182');
+    stone.setAttribute('width', TILE_WIDTH); stone.setAttribute('height','14'); stone.setAttribute('rx','3');
+    stone.setAttribute('fill','rgba(255,255,255,0.15)'); stone.setAttribute('stroke','rgba(255,255,255,0.3)'); stone.setAttribute('stroke-dasharray','3 3');
+    bridge.appendChild(stone);
+
+    const shine = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    shine.setAttribute('id','stoneShine'+i);
+    shine.setAttribute('class','stone-shine');
+    shine.setAttribute('x', x); shine.setAttribute('y','182');
+    shine.setAttribute('width', TILE_WIDTH); shine.setAttribute('height','14'); shine.setAttribute('rx','3');
+    shine.setAttribute('fill','url(#shineSweep)'); shine.setAttribute('opacity','0');
+    bridge.appendChild(shine);
+  }
+}
+
+function resetTiles(){
+  document.getElementById('hero').setAttribute('transform', `translate(${HERO_START_X},168)`);
+  for(let i=0;i<QUESTIONS_PER_LEVEL;i++){
+    const el = document.getElementById('stone'+i);
+    el.setAttribute('fill','rgba(255,255,255,0.15)');
+    el.setAttribute('stroke','rgba(255,255,255,0.3)');
+    el.setAttribute('stroke-dasharray','3 3');
+    el.classList.remove('pop-in');
+    const shineEl = document.getElementById('stoneShine'+i);
+    if(shineEl) shineEl.classList.remove('shine-sweep');
+  }
+}
+
+function applyWorldTheme(){
+  const w = WORLD_META[currentWorldId];
+  document.getElementById('riverRect').setAttribute('fill', w.river);
+  const skin = SKINS.find(s => s.id === equippedSkin);
+  document.getElementById('heroTunic').setAttribute('fill', (skin && skin.tunic) ? skin.tunic : w.tunic);
+  document.getElementById('chapterTitle').textContent = w.chapterTitle;
+  document.getElementById('chapterSub').textContent = w.chapterSub;
+  document.getElementById('levelTag').textContent = `Level ${state.level}/${LEVELS_PER_WORLD}`;
+  applyBackgroundTheme();
+  applyBridgeTheme();
+}
+
+function renderWorldStrip(justUnlockedId){
+  const strip = document.getElementById('worldStrip');
+  strip.innerHTML = '';
+  playOrder.forEach(id => {
+    const w = WORLD_META[id];
+    const chip = document.createElement('div');
+    let cls = 'world-chip ';
+    cls += (id === currentWorldId) ? 'active' : (unlocked[id] ? 'unlocked' : 'locked');
+    chip.className = cls;
+    if(id === justUnlockedId) chip.classList.add('just-unlocked');
+    chip.innerHTML = `<span class="icon">${unlocked[id] ? w.icon : '🔒'}</span>${w.name}`;
+    if(unlocked[id] && id !== currentWorldId) chip.onclick = () => { sfxTap(); startWorld(id); };
+    strip.appendChild(chip);
+  });
+}
+
+function loadNextQuestion(){
+  const q = getNextQuestion(currentWorldId, state.effectiveTier);
+  state.usedTexts.push(q.text);
+  state.currentQuestion = q;
+  renderCurrentQuestion();
+}
+
+function renderCurrentQuestion(){
+  const w = WORLD_META[currentWorldId];
+  const q = state.currentQuestion;
+  document.getElementById('levelTag').textContent = `Level ${state.level}/${LEVELS_PER_WORLD}`;
+  document.getElementById('diffTag').textContent = 'Difficulty: ' + DIFF_STARS[state.effectiveTier];
+  document.getElementById('cardEyebrow').textContent = `${w.name} · Question ${state.idx+1}`;
+
+  const visualRow = document.getElementById('visualRow');
+  if(q.visual){
+    visualRow.style.display='flex';
+    visualRow.innerHTML = Array.from(q.visual).map(e=>`<span>${e}</span>`).join('');
+  } else {
+    visualRow.style.display='none';
+    visualRow.innerHTML='';
+  }
+
+  document.getElementById('qText').textContent = q.text;
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = '';
+  shuffle(q.choices).forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = opt;
+    btn.dataset.value = String(opt);
+    btn.onclick = () => handleAnswer(opt, btn);
+    choicesEl.appendChild(btn);
+  });
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('progressCount').textContent = state.idx;
+  document.getElementById('progressFill').style.width = (state.idx/QUESTIONS_PER_LEVEL*100)+'%';
+  document.getElementById('hintBtn').style.display = 'block';
+  state.locked = false;
+}
+
+function playReaction(kind){
+  const badge = document.getElementById('reactionBadge');
+  badge.className = 'reaction-badge';
+  void badge.offsetWidth;
+  badge.textContent = kind === 'wrong' ? (['🙁','😟','😢'])[Math.floor(Math.random()*3)] : (['😄','🎉','⭐'])[Math.floor(Math.random()*3)];
+  badge.classList.add(kind === 'wrong' ? 'show-wrong' : 'show-correct');
+}
+
+function bumpStat(id, penalty){
+  const el = document.getElementById(id);
+  el.classList.remove('bump','penalty'); void el.offsetWidth;
+  el.classList.add(penalty ? 'penalty' : 'bump');
+}
+
+function fillTile(color, colorDark){
+  const stoneEl = document.getElementById('stone'+state.idx);
+  stoneEl.setAttribute('fill', color);
+  stoneEl.setAttribute('stroke', colorDark);
+  stoneEl.setAttribute('stroke-dasharray','0');
+  stoneEl.classList.add('pop-in');
+  const shineEl = document.getElementById('stoneShine'+state.idx);
+  if(shineEl){
+    shineEl.classList.remove('shine-sweep');
+    void shineEl.offsetWidth;
+    shineEl.classList.add('shine-sweep');
+  }
+  document.getElementById('hero').setAttribute('transform', `translate(${HERO_START_X+(state.idx+1)*TILE_PITCH},168)`);
+}
+
+function advanceQuestion(){
+  state.idx++;
+  document.getElementById('progressCount').textContent = state.idx;
+  document.getElementById('progressFill').style.width = (state.idx/QUESTIONS_PER_LEVEL*100)+'%';
+  setTimeout(() => {
+    if(state.idx >= QUESTIONS_PER_LEVEL){ levelComplete(); }
+    else { loadNextQuestion(); }
+  }, 800);
+}
+
+function handleAnswer(selected, btn){
+  if(state.locked) return;
+  const feedback = document.getElementById('feedback');
+  const w = WORLD_META[currentWorldId];
+  const correct = state.currentQuestion.answer;
+
+  if(String(selected) === String(correct)){
+    state.locked = true;
+    btn.classList.add('correct');
+    feedback.textContent = "Nice work! Piece connected. (+10 XP)";
+    feedback.className = 'feedback';
+    playReaction('correct');
+    sfxCorrect();
+    document.getElementById('hintBtn').style.display = 'none';
+
+    fillTile(w.accent, w.accentDark);
+
+    state.xp += 10; coins += 5;
+    document.getElementById('xpCount').textContent = state.xp;
+    updateCoinDisplays();
+    saveGame();
+    bumpStat('xpPill', false); bumpStat('coinPill', false);
+
+    if(adaptiveEnabled) state.effectiveTier = Math.min(state.effectiveTier + 1, 5);
+    advanceQuestion();
+  } else {
+    btn.classList.add('wrong','shake-el');
+    state.xp = Math.max(0, state.xp - WRONG_XP_PENALTY);
+    coins = Math.max(0, coins - WRONG_COIN_PENALTY);
+    document.getElementById('xpCount').textContent = state.xp;
+    updateCoinDisplays();
+    saveGame();
+    bumpStat('xpPill', true); bumpStat('coinPill', true);
+
+    feedback.textContent = `Not quite — try again! (−${WRONG_XP_PENALTY} XP)`;
+    feedback.className = 'feedback shake';
+    playReaction('wrong');
+    sfxWrong();
+    vibrateWrong();
+
+    const card = document.getElementById('quizCard');
+    card.classList.remove('wrong-border'); void card.offsetWidth; card.classList.add('wrong-border');
+    const scene = document.getElementById('sceneWrap');
+    scene.classList.add('wrong-pulse');
+    setTimeout(() => scene.classList.remove('wrong-pulse'), 500);
+    setTimeout(() => btn.classList.remove('wrong','shake-el'), 450);
+  }
+}
+
+function revealAnswer(){
+  if(state.locked) return;
+
+  if(state.xp < HINT_XP_COST || coins < HINT_COIN_COST){
+    const feedback = document.getElementById('feedback');
+    feedback.textContent = `You need ${HINT_XP_COST} XP and ${HINT_COIN_COST} coins for a hint!`;
+    feedback.className = 'feedback shake';
+    const hintBtn = document.getElementById('hintBtn');
+    hintBtn.classList.remove('shake-el'); void hintBtn.offsetWidth; hintBtn.classList.add('shake-el');
+    setTimeout(() => hintBtn.classList.remove('shake-el'), 450);
+    return;
+  }
+
+  state.locked = true;
+  const w = WORLD_META[currentWorldId];
+  const correct = String(state.currentQuestion.answer);
+  document.querySelectorAll('#choices .choice-btn').forEach(b => {
+    b.style.pointerEvents = 'none';
+    if(b.dataset.value === correct) b.classList.add('hint-highlight');
+  });
+
+  state.xp -= HINT_XP_COST;
+  coins -= HINT_COIN_COST;
+  document.getElementById('xpCount').textContent = state.xp;
+  updateCoinDisplays();
+  saveGame();
+  bumpStat('xpPill', true); bumpStat('coinPill', true);
+
+  const feedback = document.getElementById('feedback');
+  feedback.textContent = `Here's the answer! (−${HINT_XP_COST} XP, −${HINT_COIN_COST} coins)`;
+  feedback.className = 'feedback hint';
+  sfxHint();
+  document.getElementById('hintBtn').style.display = 'none';
+
+  fillTile('#E8DCC8', '#B7A98C');
+  advanceQuestion();
+}
+
+function levelComplete(){
+  const w = WORLD_META[currentWorldId];
+  document.getElementById('quizCard').style.display='none';
+  const celebrate = document.getElementById('celebrate');
+  celebrate.style.display='block';
+  celebrate.classList.add('pop-in');
+  const nextBtn = document.getElementById('nextBtn');
+
+  if(state.level < LEVELS_PER_WORLD){
+    sfxLevelUp();
+    document.getElementById('celebrateTitle').textContent = `🎉 Level ${state.level} Complete!`;
+    document.getElementById('celebrateText').textContent = `Nice! Level ${state.level+1} will start a bit tougher.`;
+    nextBtn.textContent = `Level ${state.level+1} →`;
+    nextBtn.style.display='inline-block';
+    nextBtn.onclick = () => {
+      state.level++; state.idx=0; state.locked=false;
+      state.effectiveTier = levelBaseTier(state.level);
+      resetTiles();
+      document.getElementById('quizCard').style.display='block';
+      celebrate.style.display='none';
+      loadNextQuestion();
+    };
+  } else {
+    document.getElementById('celebrateTitle').textContent = w.celebrateWorldTitle;
+    const idx = playOrder.indexOf(currentWorldId);
+    const next = playOrder[idx+1];
+    if(next && !unlocked[next]){
+      unlocked[next]=true;
+      sfxUnlock();
+      document.getElementById('celebrateText').textContent = `Great work! ${WORLD_META[next].name} is now unlocked!`;
+      nextBtn.textContent = WORLD_META[next].name + ' →';
+      nextBtn.style.display='inline-block';
+      nextBtn.onclick = () => startWorld(next);
+      renderWorldStrip(next);
+    } else if(next){
+      document.getElementById('celebrateText').textContent = `Great work, explorer!`;
+      nextBtn.textContent = WORLD_META[next].name + ' →';
+      nextBtn.style.display='inline-block';
+      nextBtn.onclick = () => startWorld(next);
+    } else {
+      document.getElementById('celebrateText').textContent = `You've completed every world — amazing work, explorer!`;
+      nextBtn.style.display='none';
+    }
+  }
+}
+
+function replayWorld(){ startWorld(currentWorldId); }
+function advanceStub(){ /* onclick assigned dynamically in levelComplete */ }
+
+/* ---------- INIT ---------- */
+loadSave();
+buildBridge();
+updateCoinDisplays();
+updateSettingsUI();
+applyBackgroundTheme();
+applyBridgeTheme();
+document.addEventListener('touchstart', unlockAudioOnce, {once:true});
+document.addEventListener('click', unlockAudioOnce, {once:true});
+try{ history.replaceState({screen:'home'}, '', '#home'); }catch(e){ /* history API blocked in some preview sandboxes — safe to ignore */ }
+buildAgeGrid();
+</script>
+
+</body>
+</html>
